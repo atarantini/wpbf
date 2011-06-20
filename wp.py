@@ -19,7 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib, urllib2, re, random
+import urllib, urllib2, re
+from random import randint
+from urlparse import urljoin
 
 def request(url, params, proxy):
 	"""
@@ -57,7 +59,7 @@ def check_username(url, username, proxy):
         username - Wordpress username
         proxy - HTTP proxy URL
         """
-        data = request(url, [('log', username), ('pwd', str(random.randint(1, 9999)))], proxy)
+        data = request(url, [('log', username), ('pwd', str(randint(1, 9999)))], proxy)
         if "ERROR" in data or "Error" in data or "login_error" in data:
             if "usuario es incorrecto" in data or "Invalid username" in data:
                 return False
@@ -68,26 +70,23 @@ def check_username(url, username, proxy):
 
 def find_username(url, proxy):
     data =  request(url, [], proxy)
-
     username = None
 
-    match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # busco <!-- by AUTHOR -->
+    match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
     if match:
         username = match.group()[8:-4]
 
     if username is None:
-        match = re.search('View all posts by (.*)"', data, re.IGNORECASE)       # busco View all posts by AUTHOR
+        match = re.search('View all posts by (.*)"', data, re.IGNORECASE)       # search "View all posts by {AUTHOR}"
         if match:
             username = match.group()[18:-1]
 
     if username is None:
-        match = re.search('<a href="'+wp_base_url+'author/(.*)" ', data, re.IGNORECASE)
+        match = re.search('<a href="'+urljoin(url, ".")+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
         if match:
             username = match.group()[len(wp_base_url)+16:-2]
 
     if username is None or len(username) < 1:
-        logger.info("Can't find username")
-        error = True
         return False
     else:
         username = username.strip().replace("/","")

@@ -125,5 +125,3 @@ if __name__ == '__main__':
 	    queue.queue.clear()
             for t in threading.enumerate()[1:]:
                 t.join()
-
-    logger.info("cahu!")
