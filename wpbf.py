@@ -62,7 +62,7 @@ if __name__ == '__main__':
     if args.scriptpath:
         config.script_path = args.scriptpath
     if args.threads:
-        config.threads = args.threads
+        config.threads = int(args.threads)
     if args.proxy:
         config.proxy = args.proxy
     else:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     logger.debug("Loading wordlist...")
     queue = Queue.Queue()
     words = [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     #add domain name to queue
+    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # add domain name to queue
     logger.debug(str(len(words))+" words loaded.")
 
     # check URL & username
@@ -113,7 +113,6 @@ if __name__ == '__main__':
     logger.info("Bruteforcing...")
     for i in range(config.threads):
         t = WpbfThread(queue)
-        #t.setDaemon(True)
         t.start()
 
     # feedback to stdout
@@ -125,6 +124,6 @@ if __name__ == '__main__':
 	    logger.debug("Clearing queue and killing threads...")
 	    queue.queue.clear()
             for t in threading.enumerate()[1:]:
-                t.join(3)
+                t.join()
 
-    logger.info("Done.")
+    logger.info("cahu!")
