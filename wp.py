@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib, urllib2, re
+import urllib, urllib2, re, random
 
 def request(url, params, proxy):
 	"""
@@ -57,7 +57,7 @@ def check_username(url, username, proxy):
         username - Wordpress username
         proxy - HTTP proxy URL
         """
-        data = request(url, [('log', username), ('pwd', 'check_username')], proxy)
+        data = request(url, [('log', username), ('pwd', str(random.randint(1, 9999)))], proxy)
         if "ERROR" in data or "Error" in data or "login_error" in data:
             if "usuario es incorrecto" in data or "Invalid username" in data:
                 return False
