@@ -51,7 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (defaul: wordlist.txt)")
     parser.add_argument('-u', '--username', default=config.username, help="username (defaul: admin)")
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (defaul: wp-login.php)")
-    parser.add_argument('-t', '--threads', default=config.threads, help="how many threads the script will spawn (defaul: 5)")
+    parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (defaul: 5)")
     parser.add_argument('-p', '--proxy', help="http proxy (ex: http://localhost:8008/)")
     args = parser.parse_args()
     config.wp_base_url = args.url
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     if args.scriptpath:
         config.script_path = args.scriptpath
     if args.threads:
-        config.threads = int(args.threads)
+        config.threads = args.threads
     if args.proxy:
         config.proxy = args.proxy
     else:
