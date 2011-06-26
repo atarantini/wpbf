@@ -36,7 +36,9 @@ Requirements:
 Features:
     * Basic username detection
     * Threads
+    * HTTP Proxy Support
     * Advanced logging using Python's logging library and logging configuration file
+
 
 Usage:
 
