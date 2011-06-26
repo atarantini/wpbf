@@ -23,3 +23,8 @@ username = "admin"
 script_path = "wp-login.php"
 url = "http://localhost/wordpress/wp-login.php"
 threads = 5
+
+# keywords
+min_keyword_len = 3
+min_frequency = 2
+ignore_with = ['&', ';', '<', '>',]

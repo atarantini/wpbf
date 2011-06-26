@@ -79,9 +79,9 @@ if __name__ == '__main__':
     # load wordlist into queue
     logger.debug("Loading wordlist...")
     queue = Queue.Queue()
-    words = [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # add domain name to queue
-    logger.debug(str(len(words))+" words loaded.")
+    [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
+    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
+    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # load queue with additional words using domain name
 
     # check URL & username
     logger.info("Checking URL & username...")
@@ -100,6 +100,8 @@ if __name__ == '__main__':
                 else:
                     logger.info("Using username "+config.username)
                     queue.put(config.username)
+	logger.info("Load into queue additional words using keywords from blog...")
+	[queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
     except urllib2.URLError:
         logger.info("URL Error on: "+config.url)
         if proxy:

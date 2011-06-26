@@ -69,6 +69,12 @@ def check_username(url, username, proxy):
             return True
 
 def find_username(url, proxy):
+    """
+    Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
+
+    url - Any URL in the blog that can contain author references
+    proxy - HTTP proxy URL
+    """
     data =  request(url, [], proxy)
     username = None
 
@@ -91,3 +97,56 @@ def find_username(url, proxy):
     else:
         username = username.strip().replace("/","")
         return username
+
+def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ignore_with=[]):
+    """
+    Try to find relevant keywords within the given URL, usually this keywords will be used added to the wordlist
+
+    url - Any URL in the blog that can contain author references
+    proxy - HTTP proxy URL
+    min_keyword_len - Filter keywords that doesn't have this minimum length
+    min_frequency - Filter keywords number of times than a keyword appears within the content
+    ignore_with - Ignore words that contains any characters in this list
+    """
+    data =  request(url, [], proxy)
+    keywords = []
+
+    # get keywords from title
+    title = re.search('<title>.*</title>', data, re.IGNORECASE).group()
+    [keywords.insert(0,kw.lower()) for kw in title[7:-8].split(" ") if len(kw) > 3][:-1]
+
+    # get keywords from url content
+    [keywords.append(k) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
+
+    # filter keywords
+    keywords = [k for k in keywords if len(k) > min_keyword_len]    # min leght
+    if len(ignore_with) > 0:	# ignore keywords with certain characters
+	for keyword in keywords:
+	    for i in ignore_with:
+		if i in keyword:
+		    keywords.remove(keyword)
+		    break
+
+    return keywords
+
+def get_keywords(data, min_keyword_len=3, min_frequency=2):
+    """
+    Get relevant keywords from text
+
+    data - Input texto to be searched from relevant keywords
+    min_keyword_len - Filter keywords that doesn't have this minimum length
+    min_frequency - Filter keywords by the number of times than a keyword appear
+    """
+    words = [w for w in data.split() if len(w) > min_keyword_len]
+    keywords = {}
+    for word in words:
+	if word in keywords:
+	    keywords[word] += 1
+	else:
+	    keywords[word] = 1
+
+    for keyword, frequency in keywords.copy().iteritems():
+	if frequency < min_frequency:
+	    del keywords[keyword]
+
+    return [k for k, v in keywords.iteritems()]
