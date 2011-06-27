@@ -52,7 +52,8 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--username', default=config.username, help="username (defaul: admin)")
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (defaul: wp-login.php)")
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (defaul: 5)")
-    parser.add_argument('-p', '--proxy', help="http proxy (ex: http://localhost:8008/)")
+    parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
+    parser.add_argument('-nk', '--nokeywords', action="store_false", help="Search keywords inside the blog's content and add them to the wordlist")
     args = parser.parse_args()
     config.wp_base_url = args.url
     if args.wordlist:
@@ -100,8 +101,9 @@ if __name__ == '__main__':
                 else:
                     logger.info("Using username "+config.username)
                     queue.put(config.username)
-	logger.info("Load into queue additional words using keywords from blog...")
-	[queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
+	if args.nokeywords:
+	    logger.info("Load into queue additional words using keywords from blog...")
+	    [queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
     except urllib2.URLError:
         logger.info("URL Error on: "+config.url)
         if proxy:

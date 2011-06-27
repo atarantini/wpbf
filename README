@@ -36,13 +36,14 @@ Requirements:
 Features:
     * Basic username detection
     * Threads
+    * Searching for keywords in blog's content and use them as possible passwords
     * HTTP Proxy Support
     * Advanced logging using Python's logging library and logging configuration file
 
 
 Usage:
 
-    wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY] url
+    wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY] [-nk] url
 
     positional arguments:
       url                   base URL where WordPress is installed (ex: http://www.myblog.com/)
@@ -53,7 +54,8 @@ Usage:
       -s SCRIPTPATH, --scriptpath SCRIPTPATH	relative path to the login form (default: wp-login.php)
       -t THREADS, --threads THREADS		how many threads the script will spawn (default: 5)
       -p PROXY, --proxy PROXY			http proxy (ex: http://localhost:8008/)
-
+      -nk, --nokeywords				Search keywords inside the blog's content and add them
+						to the wordlist
 
 Examples:
 
@@ -62,9 +64,9 @@ Examples:
 	$ ./wpbf.py http://www.mysite.com/blog/
 
 
-    CUSTOM (using different username and a local proxy)
+    CUSTOM (using username 'john', not using keywords in the wordlist and trough a local proxy)
 
-	$ ./wpbf.py -u john -p http://localhost:8008/ http://www.mysite.com/blog/
+	$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/
 
 
     AGGRESIVE (it will use default settings and spawn 23 threads)
