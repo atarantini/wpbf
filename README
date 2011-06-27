@@ -34,16 +34,17 @@ Requirements:
 
 
 Features:
-    * Basic username detection
+    * Basic username detection (parsing content) or enumeration (using TALSOFT-2011-0526 advisory
+      that works on WordPress < 3.2-beta2, see http://seclists.org/fulldisclosure/2011/May/493)
     * Threads
-    * Searching for keywords in blog's content and use them as possible passwords
+    * Searching for keywords in blog's content and use add them to the wordlist
     * HTTP Proxy Support
     * Advanced logging using Python's logging library and logging configuration file
 
 
 Usage:
 
-    wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY] [-nk] url
+    wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY] [-nk] [-eu] url
 
     positional arguments:
       url                   base URL where WordPress is installed (ex: http://www.myblog.com/)
@@ -56,6 +57,7 @@ Usage:
       -p PROXY, --proxy PROXY			http proxy (ex: http://localhost:8008/)
       -nk, --nokeywords				Search keywords inside the blog's content and add them
 						to the wordlist
+      -eu, --enumerateusers			Try to enumerate all users (Wordpress < 3.2-beta2)
 
 Examples:
 
