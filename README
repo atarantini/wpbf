@@ -37,7 +37,7 @@ Features:
     * Basic username detection (parsing content) or enumeration (using TALSOFT-2011-0526 advisory
       that works on WordPress < 3.2-beta2, see http://seclists.org/fulldisclosure/2011/May/493)
     * Threads
-    * Searching for keywords in blog's content and use add them to the wordlist
+    * Searching for keywords in blog's content and use add them in the wordlist
     * HTTP Proxy Support
     * Advanced logging using Python's logging library and logging configuration file
 
