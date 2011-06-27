@@ -20,12 +20,13 @@
 import logging, logging.config
 import urllib2, urllib, urlparse
 import sys, threading, Queue, time, argparse
+from string import join
 
 import config, wp
 
 def filter_domain(domain):
     """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name """
-    words = [".com", "www.", ".ar", ".cl", ".py", ".org", ".net", ".mx", ".bo", ".gob", ".gov"]
+    words = [".com", "www.", ".ar", ".cl", ".py", ".org", ".net", ".mx", ".bo", ".gob", ".gov", ".edu"]
     for word in words:
         domain = domain.replace(word, "")
     return domain
@@ -54,6 +55,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (defaul: 5)")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
     parser.add_argument('-nk', '--nokeywords', action="store_false", help="Search keywords inside the blog's content and add them to the wordlist")
+    parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users withouth bruteforcing")
     args = parser.parse_args()
     config.wp_base_url = args.url
     if args.wordlist:
@@ -76,6 +78,12 @@ if __name__ == '__main__':
     # build target url
     config.url = urllib.basejoin(config.wp_base_url, config.script_path)
     logger.info("Target URL: "+config.url)
+
+    # enumerate usernames
+    if args.enumerateusers:
+	logger.info("Enumerating users...")
+	logger.info("Usernames: "+join(wp.enumerate_usernames(config.wp_base_url, proxy), ", "))
+	exit(0)
 
     # load wordlist into queue
     logger.debug("Loading wordlist...")
