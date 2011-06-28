@@ -113,9 +113,12 @@ def enumerate_usernames(base_url, proxy):
 		opener = urllib2.build_opener(proxy_handler)
 	    else:
 		opener = urllib2.build_opener()
-	    response =  opener.open(request)
-	    usernames.append(urlparse(response.geturl()).path.split("/")[2])
-	    uid = uid + 1
+	    path = urlparse(opener.open(request).geturl()).path
+	    if 'author' in path:
+		usernames.append(path.split("/")[-2])
+		uid = uid + 1
+	    else:
+		break
 	except urllib2.HTTPError:
 	    break
 
