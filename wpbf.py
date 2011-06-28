@@ -97,8 +97,14 @@ if __name__ == '__main__':
     try:
         if wp.check_username(config.url, config.username, proxy) is False:
             logger.info("Possible non existent username: "+config.username)
-            logger.info("Trying to find username...")
-            config.username = wp.find_username(config.wp_base_url, proxy)
+            logger.info("Enumerating users...")
+	    enumerated_usernames = wp.enumerate_usernames(config.wp_base_url, proxy)
+	    if len(enumerated_usernames) > 0:
+		logger.info("Usernames: "+join(enumerated_usernames, ", "))
+		config.username = enumerated_usernames[0]
+	    else:
+		logger.info("Trying to find username in HTML content...")
+		config.username = wp.find_username(config.wp_base_url, proxy)
             if config.username is False:
                 logger.info("Can't find username :(")
                 sys.exit(0)

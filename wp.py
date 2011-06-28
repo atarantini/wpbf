@@ -90,7 +90,7 @@ def find_username(url, proxy):
     if username is None:
         match = re.search('<a href="'+urljoin(url, ".")+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
         if match:
-            username = match.group()[len(wp_base_url)+16:-2]
+            username = match.group()[len(url)+16:-2]
 
     if username is None or len(username) < 1:
         return False
