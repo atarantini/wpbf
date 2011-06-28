@@ -42,6 +42,11 @@ Features:
     * Advanced logging using Python's logging library and logging configuration file
 
 
+Known issues:
+    * Threads hangs with error 500 (usually when the server can't handle all the requests)
+    * False positives (in all passwords) with some uncommon WordPress versions or configurations
+
+
 Usage:
 
     wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY] [-nk] [-eu] url
