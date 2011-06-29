@@ -96,7 +96,7 @@ if __name__ == '__main__':
     logger.info("Checking URL & username...")
     try:
         if wp.check_username(config.url, config.username, proxy) is False:
-            logger.info("Possible non existent username: "+config.username)
+            logger.warning("Possible non existent username: "+config.username)
             logger.info("Enumerating users...")
 	    enumerated_usernames = wp.enumerate_usernames(config.wp_base_url, proxy)
 	    if len(enumerated_usernames) > 0:
@@ -106,11 +106,11 @@ if __name__ == '__main__':
 		logger.info("Trying to find username in HTML content...")
 		config.username = wp.find_username(config.wp_base_url, proxy)
             if config.username is False:
-                logger.info("Can't find username :(")
+                logger.error("Can't find username :(")
                 sys.exit(0)
             else:
                 if wp.check_username(config.url, config.username, proxy) is False:
-                    logger.info("Username "+config.username+" didn't work :(")
+                    logger.error("Username "+config.username+" didn't work :(")
                     sys.exit(0)
                 else:
                     logger.info("Using username "+config.username)
@@ -119,12 +119,12 @@ if __name__ == '__main__':
 	    logger.info("Load into queue additional words using keywords from blog...")
 	    [queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
     except urllib2.URLError:
-        logger.info("URL Error on: "+config.url)
+        logger.error("URL Error on: "+config.url)
         if proxy:
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
     except urllib2.HTTPError:
-        logger.info("HTTP Error on: "+url)
+        logger.error("HTTP Error on: "+url)
         sys.exit(0)
 
     # spawn threads
