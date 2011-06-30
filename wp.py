@@ -105,6 +105,7 @@ def enumerate_usernames(base_url, proxy):
     uid = 1
     usernames = []
     title_cache = ""
+    redirect = False
     while True:
 	try:
 	    url = base_url.rstrip("/")+"/?author="+str(uid)
@@ -122,8 +123,9 @@ def enumerate_usernames(base_url, proxy):
 	    if 'author' in response_path:
 		# A redirect was made and the username is exposed
 		usernames.append(response_path.split("/")[-2])
+		redirect = True
 		uid = uid + 1
-	    elif parsed_response_url.geturl() == url:
+	    elif parsed_response_url.geturl() == url and redirect is False:
 		# There was no redirection but the user ID seems to exists so we will try to
 		# find the username as the first word in the title
 		title_search = re.search('<title>(.*)</title>', data, re.IGNORECASE)
