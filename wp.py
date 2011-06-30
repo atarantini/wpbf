@@ -104,18 +104,37 @@ def enumerate_usernames(base_url, proxy):
     """
     uid = 1
     usernames = []
+    title_cache = ""
     while True:
 	try:
-	    request = urllib2.Request(base_url+"?author="+str(uid))
+	    url = base_url.rstrip("/")+"/?author="+str(uid)
+	    request = urllib2.Request(url)
 	    request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
 	    if proxy:
 		proxy_handler = urllib2.ProxyHandler({'http': proxy})
 		opener = urllib2.build_opener(proxy_handler)
 	    else:
 		opener = urllib2.build_opener()
-	    path = urlparse(opener.open(request).geturl()).path
-	    if 'author' in path:
-		usernames.append(path.split("/")[-2])
+	    response = opener.open(request)
+	    data = response.read()
+	    parsed_response_url = urlparse(response.geturl())
+	    response_path = parsed_response_url.path
+	    if parsed_response_url.geturl() == url:
+		# There was no redirection but the user ID seems to exists so we will try to
+		# find the username as the first word in the title
+		title_search = re.search('<title>(.*)</title>', data, re.IGNORECASE)
+		if title_search:
+		    title =  title_search.group(1)
+		    # If the title is the same than the last user ID requested, there are no new users
+		    if title == title_cache:
+			break
+		    else:
+			title_cache = title
+			usernames.append(title.split()[0])
+			uid = uid + 1
+	    elif 'author' in response_path:
+		# A redirect was made and the username is exposed
+		usernames.append(response_path.split("/")[-2])
 		uid = uid + 1
 	    else:
 		break
