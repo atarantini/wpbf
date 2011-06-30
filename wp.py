@@ -119,7 +119,11 @@ def enumerate_usernames(base_url, proxy):
 	    data = response.read()
 	    parsed_response_url = urlparse(response.geturl())
 	    response_path = parsed_response_url.path
-	    if parsed_response_url.geturl() == url:
+	    if 'author' in response_path:
+		# A redirect was made and the username is exposed
+		usernames.append(response_path.split("/")[-2])
+		uid = uid + 1
+	    elif parsed_response_url.geturl() == url:
 		# There was no redirection but the user ID seems to exists so we will try to
 		# find the username as the first word in the title
 		title_search = re.search('<title>(.*)</title>', data, re.IGNORECASE)
@@ -132,10 +136,6 @@ def enumerate_usernames(base_url, proxy):
 			title_cache = title
 			usernames.append(title.split()[0])
 			uid = uid + 1
-	    elif 'author' in response_path:
-		# A redirect was made and the username is exposed
-		usernames.append(response_path.split("/")[-2])
-		uid = uid + 1
 	    else:
 		break
 	except urllib2.HTTPError:
