@@ -60,13 +60,16 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (defaul: 5)")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
     parser.add_argument('-nk', '--nokeywords', action="store_false", help="Search keywords inside the blog's content and add them to the wordlist")
-    parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users withouth bruteforcing")
+    parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
+    parser.add_argument('-eugt', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration")
     args = parser.parse_args()
     config.wp_base_url = args.url
     if args.wordlist:
         config.wordlist = args.wordlist
     if args.username:
         config.username = args.username
+    if args.enumeratetolerance:
+        config.eu_gap_tolerance = args.enumeratetolerance
     if args.scriptpath:
         config.script_path = args.scriptpath
     if args.threads:
@@ -87,7 +90,7 @@ if __name__ == '__main__':
     # enumerate usernames
     if args.enumerateusers:
 	logger.info("Enumerating users...")
-	logger.info("Usernames: "+join(wp.enumerate_usernames(config.wp_base_url, proxy), ", "))
+	logger.info("Usernames: "+join(wp.enumerate_usernames(config.wp_base_url, config.eu_gap_tolerance, config.proxy), ", "))
 	exit(0)
 
     # load wordlist into queue
@@ -100,32 +103,34 @@ if __name__ == '__main__':
     # check URL & username
     logger.info("Checking URL & username...")
     try:
-        if wp.check_username(config.url, config.username, proxy) is False:
+        if wp.check_username(config.url, config.username, config.proxy) is False:
             logger.warning("Possible non existent username: "+config.username)
             logger.info("Enumerating users...")
-	    enumerated_usernames = wp.enumerate_usernames(config.wp_base_url, proxy)
+	    enumerated_usernames = wp.enumerate_usernames(config.wp_base_url, config.eu_gap_tolerance, config.proxy)
 	    if len(enumerated_usernames) > 0:
 		logger.info("Usernames: "+join(enumerated_usernames, ", "))
 		config.username = enumerated_usernames[0]
 	    else:
 		logger.info("Trying to find username in HTML content...")
-		config.username = wp.find_username(config.wp_base_url, proxy)
+		config.username = wp.find_username(config.wp_base_url, config.proxy)
             if config.username is False:
                 logger.error("Can't find username :(")
                 sys.exit(0)
             else:
-                if wp.check_username(config.url, config.username, proxy) is False:
+                if wp.check_username(config.url, config.username, config.proxy) is False:
                     logger.error("Username "+config.username+" didn't work :(")
                     sys.exit(0)
                 else:
                     logger.info("Using username "+config.username)
-                    queue.put(config.username)
+
+	queue.put(config.username)  # load queue with username
+
 	if args.nokeywords:
 	    logger.info("Load into queue additional words using keywords from blog...")
-	    [queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
+	    [queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
     except urllib2.URLError:
         logger.error("URL Error on: "+config.url)
-        if proxy:
+        if config.proxy:
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
     except urllib2.HTTPError:

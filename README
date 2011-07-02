@@ -34,8 +34,7 @@ Requirements:
 
 
 Features:
-    * Basic username detection (parsing content) or enumeration (using TALSOFT-2011-0526 advisory
-      that works on WordPress < 3.2-beta2, see http://seclists.org/fulldisclosure/2011/May/493)
+    * Username enumeration and detection (TALSOFT-2011-0526, Author's archive page and content parsing)
     * Threads
     * Searching for keywords in blog's content and use add them in the wordlist
     * HTTP Proxy Support
@@ -43,7 +42,6 @@ Features:
 
 
 Known issues:
-    * Threads hangs with error 500 (usually when the server can't handle all the requests)
     * False positives (in all passwords) with some uncommon WordPress versions or configurations
 
 
@@ -60,9 +58,11 @@ Usage:
       -s SCRIPTPATH, --scriptpath SCRIPTPATH	relative path to the login form (default: wp-login.php)
       -t THREADS, --threads THREADS		how many threads the script will spawn (default: 5)
       -p PROXY, --proxy PROXY			http proxy (ex: http://localhost:8008/)
-      -nk, --nokeywords				Search keywords inside the blog's content and add them
+      -nk, --nokeywords				Do not search keywords inside the blog's content and add them
 						to the wordlist
-      -eu, --enumerateusers			Try to enumerate all users (Wordpress < 3.2-beta2)
+      -eu, --enumerateusers			Only enumerate users
+      -eugt, --enumeratetolerance		User ID gap tolerance to use in username enumeration
+
 
 Examples:
 
@@ -79,6 +79,11 @@ Examples:
     AGGRESIVE (it will use default settings and spawn 23 threads)
 
 	$ ./wpbf.py -t 23 http://www.mysite.com/blog/
+
+
+    USERNAME ENUMERATION
+
+    $ ./wpbf.py -eu http://www.mysite.com/blog/
 
 
     OUTPUT EXAMPLE (or how the script will behave in a normal run)

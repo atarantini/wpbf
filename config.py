@@ -19,10 +19,14 @@
 # along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
 #
 wordlist = "wordlist.txt"
-username = "admin"
 script_path = "wp-login.php"
 url = "http://localhost/wordpress/wp-login.php"
 threads = 5
+proxy = None
+
+# users
+username = "admin"
+eu_gap_tolerance = 1
 
 # keywords
 min_keyword_len = 3

