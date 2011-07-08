@@ -148,10 +148,17 @@ if __name__ == '__main__':
     # feedback to stdout
     while queue.qsize() > 0:
 	try:
+	    # poor ETA implementation
+	    start_time = time.time()
+	    start_queue = queue.qsize()
 	    time.sleep(10)
-	    print str(queue.qsize())+" words left"
+	    delta_time = time.time() - start_time
+	    current_queue = queue.qsize()
+	    delta_queue = start_queue - current_queue
+	    wps = delta_time / delta_queue
+	    print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60,2) )+"h left"
         except KeyboardInterrupt:
-	    logger.debug("Clearing queue and killing threads...")
+	    logger.info("Clearing queue and killing threads...")
 	    queue.queue.clear()
             for t in threading.enumerate()[1:]:
                 t.join()
