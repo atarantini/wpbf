@@ -36,6 +36,14 @@ def request(url, params, proxy):
             opener = urllib2.build_opener()
         return opener.open(request, urllib.urlencode(params)).read()
 
+def rm_duplicates(seq):
+	"""Remove duplicates from a list
+
+	This Function have been made by Dave Kirby and taken from site http://www.peterbe.com/plog/uniqifiers-benchmark
+	"""
+	seen = set()
+	return [x for x in seq if x not in seen and not seen.add(x)]
+
 def login(url, username, password, proxy):
         """
         Try to login into WordPress and see in the returned data contains login errors
@@ -170,9 +178,9 @@ def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ig
     [keywords.append(k) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
 
     # filter keywords
-    keywords = [k.lower() for k in keywords if len(k) > min_keyword_len]    # min leght
+    keywords = rm_duplicates([k.lower().strip() for k in keywords if len(k) > min_keyword_len])    # min leght
     if len(ignore_with) > 0:	# ignore keywords with certain characters
-	for keyword in keywords:
+	for keyword in keywords[:]:
 	    for i in ignore_with:
 		if i in keyword:
 		    keywords.remove(keyword)
