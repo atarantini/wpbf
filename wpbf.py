@@ -123,11 +123,13 @@ if __name__ == '__main__':
                 else:
                     logger.info("Using username "+config.username)
 
-	queue.put(config.username)  # load queue with username
+	if config.username not in queue.queue:
+	    queue.put(config.username)  # load queue with username
 
 	if args.nokeywords:
 	    logger.info("Load into queue additional words using keywords from blog...")
-	    [queue.put(w.strip()) for w in wp.find_keywords_in_url(config.url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with)]
+	    [queue.put(w) for w in wp.find_keywords_in_url(config.url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+
     except urllib2.URLError:
         logger.error("URL Error on: "+config.url)
         if config.proxy:

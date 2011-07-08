@@ -175,10 +175,10 @@ def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ig
     [keywords.insert(0,kw.lower()) for kw in title[7:-8].split(" ")][:-1]
 
     # get keywords from url content
-    [keywords.append(k) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
+    [keywords.append(k.strip()) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
 
     # filter keywords
-    keywords = rm_duplicates([k.lower().strip() for k in keywords if len(k) > min_keyword_len])    # min leght
+    keywords = rm_duplicates([k.lower().strip().strip(",").strip("?").strip('"') for k in keywords if len(k) > min_keyword_len])    # min leght
     if len(ignore_with) > 0:	# ignore keywords with certain characters
 	for keyword in keywords[:]:
 	    for i in ignore_with:
