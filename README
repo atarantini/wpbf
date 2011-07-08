@@ -36,7 +36,7 @@ Requirements:
 Features:
     * Username enumeration and detection (TALSOFT-2011-0526, Author's archive page and content parsing)
     * Threads
-    * Searching for keywords in blog's content and use add them in the wordlist
+    * Use keywords from blog's content in the wordlist
     * HTTP Proxy Support
     * Advanced logging using Python's logging library and logging configuration file
 

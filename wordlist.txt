@@ -2,11 +2,11 @@ prueba
 test
 admin
 wordpress
-123456
 blog
 demo
 administrador
 administrator
+admin123
 asdf
 a12345
 asdfgh
@@ -15,4 +15,3 @@ qwerty
 12345
 123456
 qawsed
-admin123
