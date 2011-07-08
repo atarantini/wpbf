@@ -108,7 +108,8 @@ def find_username(url, proxy):
 
 def enumerate_usernames(base_url, gap_tolerance=0, proxy=None):
     """
-    Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in WordPress > 3.2-beta2
+    Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in
+    WordPress > 3.2-beta2, or try to match from title of the user's archive page
     """
     uid = 0
     usernames = []
@@ -155,7 +156,7 @@ def enumerate_usernames(base_url, gap_tolerance=0, proxy=None):
 	    if gaps > gap_tolerance:
 		break
 
-    return usernames
+    return [user for user in usernames if check_username(base_url+"/wp-login.php", user, proxy)]
 
 def find_keywords_in_url(url, proxy=None, min_keyword_len=3, min_frequency=2, ignore_with=[]):
     """
