@@ -54,14 +54,14 @@ if __name__ == '__main__':
     #parse command line arguments
     parser = argparse.ArgumentParser(description='Bruteforce WordPress login form to test password strenght. Currently supports threads, wordlist and basic username detection.')
     parser.add_argument('url', type=str,  help='base URL where WordPress is installed')
-    parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (defaul: wordlist.txt)")
-    parser.add_argument('-u', '--username', default=config.username, help="username (defaul: admin)")
-    parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (defaul: wp-login.php)")
-    parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (defaul: 5)")
+    parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (default: "+config.wordlist+")")
+    parser.add_argument('-u', '--username', default=config.username, help="username (default: "+config.username+")")
+    parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (default: "+config.script_path+")")
+    parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (default: "+str(config.threads)+")")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
     parser.add_argument('-nk', '--nokeywords', action="store_false", help="Search keywords inside the blog's content and add them to the wordlist")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
-    parser.add_argument('-eugt', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration")
+    parser.add_argument('-eugt', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
     args = parser.parse_args()
     config.wp_base_url = args.url
     if args.wordlist:
