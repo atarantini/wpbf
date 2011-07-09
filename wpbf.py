@@ -84,8 +84,8 @@ if __name__ == '__main__':
     logger = logging.getLogger("wpbf")
 
     # build target url
+    logger.info("Target URL: "+config.wp_base_url)
     config.url = urllib.basejoin(config.wp_base_url, config.script_path)
-    logger.info("Target URL: "+config.url)
 
     # enumerate usernames
     if args.enumerateusers:
@@ -93,14 +93,10 @@ if __name__ == '__main__':
 	logger.info("Usernames: "+join(wp.enumerate_usernames(config.wp_base_url, config.eu_gap_tolerance, config.proxy), ", "))
 	exit(0)
 
-    # load wordlist into queue
-    logger.debug("Loading wordlist...")
+    # queue
     queue = Queue.Queue()
-    [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
-    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # load queue with additional words using domain name
 
-    # check URL & username
+    # check URL, username and load additional words into queue
     logger.info("Checking URL & username...")
     try:
         if wp.check_username(config.url, config.username, config.proxy) is False:
@@ -138,6 +134,12 @@ if __name__ == '__main__':
     except urllib2.HTTPError:
         logger.error("HTTP Error on: "+url)
         sys.exit(0)
+
+    # load wordlist into queue
+    logger.debug("Loading wordlist...")
+    [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
+    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
+    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # load queue with additional words using domain name
 
     # spawn threads
     logger.info("Bruteforcing...")
