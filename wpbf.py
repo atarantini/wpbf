@@ -87,6 +87,9 @@ if __name__ == '__main__':
     logger.info("Target URL: "+config.wp_base_url)
     config.url = urllib.basejoin(config.wp_base_url, config.script_path)
 
+    # Wp perform actions over a BlogPress blog
+    wp = wp.Wp()
+
     # enumerate usernames
     if args.enumerateusers:
 	logger.info("Enumerating users...")
