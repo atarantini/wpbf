@@ -24,16 +24,32 @@ from random import randint
 from urlparse import urljoin, urlparse
 
 class Wp:
-    """Perform variuos actions (login, username check/enumeration, keyword search) in a WordPress Blog."""
+    """Perform actions on a WordPress Blog.
+
+    Do things in a WordPress blog including login, username check/enumeration, keyword search and plugin detection.
+
+    base_url          -- URL of the blog's main page
+    login_script_path -- Path relative to base_url where the login form is located
+    proxy	      -- URL for a HTTP Proxy
+    """
+    _base_url = ''
+    _login_script_path = ''
+    _login_url = ''
+    _proxy = None
 
     _cache = {}
 
-    def request(self, url, params, proxy=None, cache=False):
+    def __init__(self, base_url, login_script_path="wp-login.php", proxy=None):
+	self._base_url = base_url
+	self._login_script_path = login_script_path
+	self._proxy = proxy
+	self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
+
+    def request(self, url, params, cache=False):
 	"""Request an URL with a given parameters and proxy
 
 	url    -- URL to request
 	params -- dictionary with POST variables
-	proxy  -- URL for an HTTP proxy
 	cache  -- True if you want request to be cached and get a cached version of the request
 	"""
 	if cache and self._cache.has_key(url):
@@ -41,8 +57,8 @@ class Wp:
 
 	request = urllib2.Request(url)
 	request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
-	if proxy:
-	    proxy_handler = urllib2.ProxyHandler({'http': proxy})
+	if self._proxy:
+	    proxy_handler = urllib2.ProxyHandler({'http': self._proxy})
 	    opener = urllib2.build_opener(proxy_handler)
 	else:
 	    opener = urllib2.build_opener()
@@ -61,28 +77,24 @@ class Wp:
 	seen = set()
 	return [x for x in seq if x not in seen and not seen.add(x)]
 
-    def login(self, url, username, password, proxy):
+    def login(self, username, password):
 	"""Try to login into WordPress and see in the returned data contains login errors
 
-	url      -- Login form URL
 	username -- Wordpress username
 	password -- Password for the supplied username
-	proxy    -- HTTP proxy URL
 	"""
-	data = self.request(url, [('log', username), ('pwd', password)], proxy)
+	data = self.request(self._login_url, [('log', username), ('pwd', password)])
 	if "ERROR" in data or "Error" in data or "login_error" in data:
 	    return False
 	else:
 	    return True
 
-    def check_username(self, url, username, proxy):
+    def check_username(self, username):
 	"""Try to login into WordPress and check in the returned data contains username errors
 
-	url      -- Login form URL
 	username -- Wordpress username
-	proxy    -- URL of an HTTP proxy
 	"""
-	data = self.request(url, [('log', username), ('pwd', str(randint(1, 9999)))], proxy)
+	data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))])
 	if "ERROR" in data or "Error" in data or "login_error" in data:
 	    if "usuario es incorrecto" in data or "Invalid username" in data:
 		return False
@@ -91,13 +103,13 @@ class Wp:
 	else:
 	    return True
 
-    def find_username(self, url, proxy):
+    def find_username(self):
 	"""Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
 
 	url   -- Any URL in the blog that can contain author references
 	proxy -- URL of a HTTP proxy
 	"""
-	data =  self.request(url, [], proxy)
+	data =  self.request(self._base_url, [])
 	username = None
 
 	match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
@@ -120,15 +132,13 @@ class Wp:
 	    username = username.strip().replace("/","")
 	    return username
 
-    def enumerate_usernames(self, base_url, gap_tolerance=0, proxy=None):
+    def enumerate_usernames(self, gap_tolerance=0):
 	"""Enumerate usernames
 
 	Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in
 	WordPress > 3.2-beta2, or try to match from title of the user's archive page
 
-	base_url      -- Base URL of the WordPress blog
 	gap_tolerance -- Tolerance for user ID gaps in the sequence (this gaps are present when users are deleted and new users created)
-	proxy         -- URL of a HTTP proxy
 	"""
 	uid = 0
 	usernames = []
@@ -138,11 +148,11 @@ class Wp:
 	while True:
 	    try:
 		uid = uid + 1
-		url = base_url.rstrip("/")+"/?author="+str(uid)
+		url = self._base_url.rstrip("/")+"/?author="+str(uid)
 		request = urllib2.Request(url)
 		request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
-		if proxy:
-		    proxy_handler = urllib2.ProxyHandler({"http": proxy})
+		if self._proxy:
+		    proxy_handler = urllib2.ProxyHandler({"http": self._proxy})
 		    opener = urllib2.build_opener(proxy_handler)
 		else:
 		    opener = urllib2.build_opener()
@@ -176,18 +186,16 @@ class Wp:
 		if gaps > gap_tolerance:
 		    break
 
-	return [user for user in usernames if self.check_username(base_url+"/wp-login.php", user, proxy)]
+	return [user for user in usernames if self.check_username(user)]
 
-    def find_keywords_in_url(self, url, proxy=None, min_keyword_len=3, min_frequency=2, ignore_with=[]):
-	"""Try to find relevant keywords within the given URL, usually this keywords will be used added to the wordlist
+    def find_keywords_in_url(self, min_keyword_len=3, min_frequency=2, ignore_with=[]):
+	"""Try to find relevant keywords within the given URL, keywords will be used added to the wordlist
 
-	url             -- Any URL in the blog that can contain author references
-	proxy           -- URL of a HTTP proxy
 	min_keyword_len -- Filter keywords that doesn't have this minimum length
 	min_frequency   -- Filter keywords number of times than a keyword appears within the content
 	ignore_with     -- Ignore words that contains any characters in this list
 	"""
-	data =  self.request(url, [], proxy, True)
+	data =  self.request(self._base_url, [], True)
 	keywords = []
 
 	# get keywords from title
@@ -229,13 +237,13 @@ class Wp:
 
 	return [k for k, v in keywords.iteritems()]
 
-    def check_loginlockdown(self, url, proxy):
+    def check_loginlockdown(self):
 	"""Check if "Login LockDown" plugin is active
 
 	url   -- Login form URL
 	proxy -- URL for a HTTP Proxy
 	"""
-	data = self.request(url, [], proxy, True)
+	data = self.request(self._login_url, [], True)
 	if "lockdown" in data.lower():
 	    return True
 	else:
