@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
 	if args.nokeywords:
 	    logger.info("Load into queue additional words using keywords from blog...")
-	    [queue.put(w) for w in wp.find_keywords_in_url(config.url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+	    [queue.put(w) for w in wp.find_keywords_in_url(config.wp_base_url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     except urllib2.URLError:
         logger.error("URL Error on: "+config.url)
