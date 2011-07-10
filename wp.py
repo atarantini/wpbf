@@ -228,3 +228,15 @@ class Wp:
 		del keywords[keyword]
 
 	return [k for k, v in keywords.iteritems()]
+
+    def check_loginlockdown(self, url, proxy):
+	"""Check if "Login LockDown" plugin is active
+
+	url   -- Login form URL
+	proxy -- URL for a HTTP Proxy
+	"""
+	data = self.request(url, [], proxy, True)
+	if "lockdown" in data.lower():
+	    return True
+	else:
+	    return False

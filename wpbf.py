@@ -121,14 +121,6 @@ if __name__ == '__main__':
                     sys.exit(0)
                 else:
                     logger.info("Using username "+config.username)
-
-	if config.username not in queue.queue:
-	    queue.put(config.username)  # load queue with username
-
-	if args.nokeywords:
-	    logger.info("Load into queue additional words using keywords from blog...")
-	    [queue.put(w) for w in wp.find_keywords_in_url(config.wp_base_url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
-
     except urllib2.URLError:
         logger.error("URL Error on: "+config.url)
         if config.proxy:
@@ -137,6 +129,20 @@ if __name__ == '__main__':
     except urllib2.HTTPError:
         logger.error("HTTP Error on: "+url)
         sys.exit(0)
+
+    # check for Login LockDown plugin
+    if wp.check_loginlockdown(config.url, config.proxy):
+	logger.warning("Login LockDown plugin is active, bruteforce will be useless")
+	sys.exit(0)
+
+    # load username into queue
+    if config.username not in queue.queue:
+	queue.put(config.username)
+
+    # load into queue additional keywords from blog main page
+    if args.nokeywords:
+	logger.info("Load into queue additional words using keywords from blog...")
+	[queue.put(w) for w in wp.find_keywords_in_url(config.wp_base_url, config.proxy, config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load wordlist into queue
     logger.debug("Loading wordlist...")
