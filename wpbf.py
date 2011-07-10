@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging, logging.config
-import urllib2, urllib, urlparse
+import urllib2, urlparse
 import sys, threading, Queue, time, argparse
 from string import join
 

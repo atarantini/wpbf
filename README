@@ -38,6 +38,7 @@ Features:
     * Threads
     * Use keywords from blog's content in the wordlist
     * HTTP Proxy Support
+    * Detection of Login LockDown plugin
     * Advanced logging using Python's logging library and logging configuration file
 
 
@@ -83,7 +84,7 @@ Examples:
 
     USERNAME ENUMERATION
 
-    $ ./wpbf.py -eu http://www.mysite.com/blog/
+	$ ./wpbf.py -eu http://www.mysite.com/blog/
 
 
     OUTPUT EXAMPLE (or how the script will behave in a normal run)
