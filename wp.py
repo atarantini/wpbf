@@ -25,13 +25,20 @@ from urlparse import urljoin, urlparse
 
 class Wp:
     """Perform variuos actions (login, username check/enumeration, keyword search) in a WordPress Blog."""
-    def request(self, url, params, proxy=None):
+
+    _cache = {}
+
+    def request(self, url, params, proxy=None, cache=False):
 	"""Request an URL with a given parameters and proxy
 
 	url    -- URL to request
 	params -- dictionary with POST variables
 	proxy  -- URL for an HTTP proxy
+	cache  -- True if you want request to be cached and get a cached version of the request
 	"""
+	if cache and self._cache.has_key(url):
+	    return self._cache[url]
+
 	request = urllib2.Request(url)
 	request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
 	if proxy:
@@ -39,7 +46,12 @@ class Wp:
 	    opener = urllib2.build_opener(proxy_handler)
 	else:
 	    opener = urllib2.build_opener()
-	return opener.open(request, urllib.urlencode(params)).read()
+	response = opener.open(request, urllib.urlencode(params)).read()
+
+	if cache:
+	    self._cache[url] = response
+
+	return response
 
     def rm_duplicates(self, seq):
 	"""Remove duplicates from a list
@@ -136,6 +148,7 @@ class Wp:
 		    opener = urllib2.build_opener()
 		response = opener.open(request)
 		data = response.read()
+		self._cache[url] = data	    # save response in cache
 		parsed_response_url = urlparse(response.geturl())
 		response_path = parsed_response_url.path
 		if 'author' in response_path:
@@ -174,7 +187,7 @@ class Wp:
 	min_frequency   -- Filter keywords number of times than a keyword appears within the content
 	ignore_with     -- Ignore words that contains any characters in this list
 	"""
-	data =  self.request(url, [], proxy)
+	data =  self.request(url, [], proxy, True)
 	keywords = []
 
 	# get keywords from title
