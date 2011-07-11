@@ -101,7 +101,7 @@ class Wp:
         params -- dictionary with POST variables
         cache  -- True if you want request to be cached and get a cached version of the request
         """
-        if cache and self._cache.has_key(url):
+        if cache and self._cache.has_key(url) and len(params) is 0:
             return self._cache[url]
 
         request = urllib2.Request(url)
@@ -113,7 +113,7 @@ class Wp:
             opener = urllib2.build_opener()
         response = opener.open(request, urllib.urlencode(params)).read()
 
-        if cache:
+        if cache and len(params) is 0:
             self._cache[url] = response
 
         return response
