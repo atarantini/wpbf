@@ -30,6 +30,13 @@ def rm_duplicates(seq):
     seen = set()
     return [x for x in seq if x not in seen and not seen.add(x)]
 
+def filter_domain(domain):
+    """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name """
+    words = [".com", "www.", ".ar", ".cl", ".py", ".org", ".net", ".mx", ".bo", ".gob", ".gov", ".edu"]
+    for word in words:
+        domain = domain.replace(word, "")
+    return domain
+
 def get_keywords(data, min_keyword_len=3, min_frequency=2):
     """Get relevant keywords from text
 

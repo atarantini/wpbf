@@ -23,13 +23,6 @@ import sys, threading, Queue, time, argparse
 
 import config, wplib
 
-def filter_domain(domain):
-    """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name """
-    words = [".com", "www.", ".ar", ".cl", ".py", ".org", ".net", ".mx", ".bo", ".gob", ".gov", ".edu"]
-    for word in words:
-        domain = domain.replace(word, "")
-    return domain
-
 class WpbfThread(threading.Thread):
     """Handle threads that consume the wordlist queue and try to login for each word"""
     def __init__(self, wordlist_queue):
@@ -142,7 +135,7 @@ if __name__ == '__main__':
     # load into queue additional keywords from blog main page
     if args.nokeywords:
         logger.info("Load into queue additional words using keywords from blog...")
-        queue.put(filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
+        queue.put(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load wordlist into queue
