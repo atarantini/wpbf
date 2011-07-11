@@ -1,28 +1,27 @@
 #!/usr/bin/env python
-#
-# wpbf is a WordPress BruteForce script to remotely test password strength of the WordPress blogging software
-#
-# Copyright 2011 Andres Tarantini (atarantini@gmail.com)
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+wpbf is a WordPress BruteForce script to remotely test password strength of the WordPress blogging software
 
+Copyright 2011 Andres Tarantini (atarantini@gmail.com)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import logging, logging.config
 import urllib2, urlparse
 import sys, threading, Queue, time, argparse
-from string import join
 
-import config, wp
+import config, wplib
 
 def filter_domain(domain):
     """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name """
@@ -32,22 +31,23 @@ def filter_domain(domain):
     return domain
 
 class WpbfThread(threading.Thread):
-    def __init__(self, queue):
+    """Handle threads that consume the wordlist queue and try to login for each word"""
+    def __init__(self, wordlist_queue):
         threading.Thread.__init__(self)
-        self.queue = queue
+        self._queue = wordlist_queue
 
     def run(self):
-        while self.queue.qsize() > 0:
+        while self._queue.qsize() > 0:
             try:
-                word = self.queue.get()
+                word = self._queue.get()
                 logger.debug("Trying with "+word)
                 if wp.login(config.username, word):
-                    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp._login_url)
-                    self.queue.queue.clear()
-                self.queue.task_done()
+                    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp.get_login_url())
+                    self._queue.queue.clear()
+                self._queue.task_done()
             except urllib2.HTTPError, e:
                 logger.debug("HTTP Error: "+str(e)+"for: "+word)
-                self.queue.put(word)
+                self._queue.put(word)
                 logger.debug("Requeued: "+word)
 
 if __name__ == '__main__':
@@ -84,15 +84,15 @@ if __name__ == '__main__':
     logger = logging.getLogger("wpbf")
 
     # Wp perform actions over a BlogPress blog
-    wp = wp.Wp(config.wp_base_url, config.script_path, config.proxy)
+    wp = wplib.Wp(config.wp_base_url, config.script_path, config.proxy)
 
     # build target url
-    logger.info("Target URL: "+wp._base_url)
+    logger.info("Target URL: "+wp.get_base_url())
 
     # enumerate usernames
     if args.enumerateusers:
         logger.info("Enumerating users...")
-        logger.info("Usernames: "+join(wp.enumerate_usernames(config.eu_gap_tolerance), ", "))
+        logger.info("Usernames: "+", ".join(wp.enumerate_usernames(config.eu_gap_tolerance)))
         exit(0)
 
     # queue
@@ -106,7 +106,7 @@ if __name__ == '__main__':
             logger.info("Enumerating users...")
             enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
             if len(enumerated_usernames) > 0:
-                logger.info("Usernames: "+join(enumerated_usernames, ", "))
+                logger.info("Usernames: "+", ".join(enumerated_usernames))
                 config.username = enumerated_usernames[0]
             else:
                 logger.info("Trying to find username in HTML content...")
@@ -120,13 +120,13 @@ if __name__ == '__main__':
                     sys.exit(0)
                 else:
                     logger.info("Using username "+config.username)
+    except urllib2.HTTPError:
+        logger.error("HTTP Error on: "+wp.get_login_url())
+        sys.exit(0)
     except urllib2.URLError:
-        logger.error("URL Error on: "+wp._login_url)
+        logger.error("URL Error on: "+wp.get_login_url())
         if config.proxy:
             logger.info("Check if proxy is well configured and running")
-        sys.exit(0)
-    except urllib2.HTTPError:
-        logger.error("HTTP Error on: "+wp._login_url)
         sys.exit(0)
 
     # check for Login LockDown plugin
@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # load into queue additional keywords from blog main page
     if args.nokeywords:
         logger.info("Load into queue additional words using keywords from blog...")
-        queue.put(filter_domain(urlparse.urlparse(wp._base_url).hostname))     # add domain name to the queue
+        queue.put(filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load wordlist into queue
@@ -167,7 +167,7 @@ if __name__ == '__main__':
             current_queue = queue.qsize()
             delta_queue = start_queue - current_queue
             wps = delta_time / delta_queue
-            print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60,2) )+"h left"
+            print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
             queue.queue.clear()

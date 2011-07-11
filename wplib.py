@@ -1,26 +1,55 @@
-#
-# wpbf WordPress tools
-#
-# Copyright 2011 Andres Tarantini (atarantini@gmail.com)
-#
-# This file is part of wpbf.
-#
-# wpbf is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# wpbf is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
+"""
+wpbf WordPress library
 
+Copyright 2011 Andres Tarantini (atarantini@gmail.com)
+
+This file is part of wpbf.
+
+wpbf is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+wpbf is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import urllib, urllib2, re
 from random import randint
-from urlparse import urljoin, urlparse
+from urlparse import urlparse
+
+def rm_duplicates(seq):
+    """Remove duplicates from a list
+
+    This Function have been made by Dave Kirby and taken from site http://www.peterbe.com/plog/uniqifiers-benchmark
+    """
+    seen = set()
+    return [x for x in seq if x not in seen and not seen.add(x)]
+
+def get_keywords(data, min_keyword_len=3, min_frequency=2):
+    """Get relevant keywords from text
+
+    data            -- Input text to be indexed
+    min_keyword_len -- Filter keywords that doesn't have this minimum length
+    min_frequency   -- Filter keywords by the number of times than a keyword appear
+    """
+    words = [w for w in data.split() if len(w) > min_keyword_len]
+    keywords = {}
+    for word in words:
+        if word in keywords:
+            keywords[word] += 1
+        else:
+            keywords[word] = 1
+
+    for keyword, frequency in keywords.copy().iteritems():
+        if frequency < min_frequency:
+            del keywords[keyword]
+
+    return [k for k, v in keywords.iteritems()]
 
 class Wp:
     """Perform actions on a WordPress Blog.
@@ -43,6 +72,20 @@ class Wp:
         self._login_script_path = login_script_path
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
+
+
+    # Getters
+
+    def get_login_url(self):
+        """Returns login URL"""
+        return self._login_url
+
+    def get_base_url(self):
+        """Returns base URL"""
+        return self._base_url
+
+
+    # General methods
 
     def request(self, url, params, cache=False):
         """Request an URL with a given parameters and proxy
@@ -68,13 +111,8 @@ class Wp:
 
         return response
 
-    def rm_duplicates(self, seq):
-        """Remove duplicates from a list
 
-        This Function have been made by Dave Kirby and taken from site http://www.peterbe.com/plog/uniqifiers-benchmark
-        """
-        seen = set()
-        return [x for x in seq if x not in seen and not seen.add(x)]
+    # WordPress specific methods
 
     def login(self, username, password):
         """Try to login into WordPress and see in the returned data contains login errors
@@ -121,9 +159,9 @@ class Wp:
                 username = match.group()[18:-1]
 
         if username is None:
-            match = re.search('<a href="'+urljoin(url, ".")+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
+            match = re.search('<a href="'+self._base_url+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
             if match:
-                username = match.group()[len(url)+16:-2]
+                username = match.group()[len(self._base_url)+16:-2]
 
         if username is None or len(username) < 1:
             return False
@@ -187,7 +225,7 @@ class Wp:
 
         return [user for user in usernames if self.check_username(user)]
 
-    def find_keywords_in_url(self, min_keyword_len=3, min_frequency=2, ignore_with=[]):
+    def find_keywords_in_url(self, min_keyword_len=3, min_frequency=2, ignore_with=False):
         """Try to find relevant keywords within the given URL, keywords will be used added to the wordlist
 
         min_keyword_len -- Filter keywords that doesn't have this minimum length
@@ -199,14 +237,14 @@ class Wp:
 
         # get keywords from title
         title = re.search('<title>.*</title>', data, re.IGNORECASE).group()
-        [keywords.insert(0,kw.lower()) for kw in title[7:-8].split(" ")][:-1]
+        [keywords.insert(0, kw.lower()) for kw in title[7:-8].split(" ")][:-1]
 
         # get keywords from url content
-        [keywords.append(k.strip()) for k in self.get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
+        [keywords.append(k.strip()) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
 
         # filter keywords
-        keywords = self.rm_duplicates([k.lower().strip().strip(",").strip("?").strip('"') for k in keywords if len(k) > min_keyword_len])    # min leght
-        if len(ignore_with) > 0:	# ignore keywords with certain characters
+        keywords = rm_duplicates([k.lower().strip().strip(",").strip("?").strip('"') for k in keywords if len(k) > min_keyword_len])    # min leght
+        if ignore_with and len(ignore_with) > 0:        # ignore keywords with certain characters
             for keyword in keywords[:]:
                 for i in ignore_with:
                     if i in keyword:
@@ -214,27 +252,6 @@ class Wp:
                         break
 
         return keywords
-
-    def get_keywords(self, data, min_keyword_len=3, min_frequency=2):
-        """Get relevant keywords from text
-
-        data	        -- Input text to be indexed
-        min_keyword_len -- Filter keywords that doesn't have this minimum length
-        min_frequency	-- Filter keywords by the number of times than a keyword appear
-        """
-        words = [w for w in data.split() if len(w) > min_keyword_len]
-        keywords = {}
-        for word in words:
-            if word in keywords:
-                keywords[word] += 1
-            else:
-                keywords[word] = 1
-
-        for keyword, frequency in keywords.copy().iteritems():
-            if frequency < min_frequency:
-                del keywords[keyword]
-
-        return [k for k, v in keywords.iteritems()]
 
     def check_loginlockdown(self):
         """Check if "Login LockDown" plugin is active
