@@ -27,6 +27,7 @@
     h1 .small a { text-decoration: none; color: #fefefe; }
     h2 { font-size: 1.5em; color: #007782; letter-spacing: 3px; }
     h3 { text-align: center; color: #CC333F; }
+    h4 { margin-bottom: 0; }
     a { color: #CC333F; }
     .description { font-size: 1.2em; color: #222222; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
@@ -84,7 +85,7 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
       <a href="http://github.com/atarantini/wpbf/tarball/master">tar</a> formats.
     </p>
     <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
+      by running:G
       <pre>$ git clone git://github.com/atarantini/wpbf</pre>
     </p>
     <h2>Install</h2>
@@ -96,6 +97,30 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
     <p><strong>Dependencies</strong> Python 2.6+</p>
     <p><strong>License</strong> GPLv3</p>
     <p><strong>Author</strong> Andres Tarantini (atarantini@gmail.com)</p>
+    <h2>Usage</h2>
+    <p>
+        <h4>Basic</h4>
+        <p>In this example, wpbf will do a bruteforce test using the default settings. You can change the default settings in config.py, if the default username (admin) is invalid the script will try to enumerate users and use one.</p>
+        <pre>$ ./wpbf.py http://localhost/wordpress/
+    2011-06-18 19:11:41,461 - wpbf - INFO - Target URL: http://localhost/wordpress/wp-login.php
+    2011-06-18 19:11:41,463 - wpbf - INFO - Checking URL & username...
+    2011-06-18 19:11:45,073 - wpbf - INFO - Bruteforcing...
+    3 words left
+    2011-06-18 19:11:55,147 - wpbf - INFO - Done.
+    2011-06-18 19:11:56,641 - wpbf - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php
+        </pre>
+        <h4>Username enumeration</h4>
+        <p>The '-eu' or '--enumerateusers' parameter will only launch username enumeration and list the users found</p>
+        <pre>$ ./wpbf.py -eu http://www.mysite.com/blog/</pre>
+        <h4>Aggresive</h4>
+        <p>You can spawn more threads to speed up the bruteforce process. Be aware that using a lot of threads can cause hangs in the server or denial of service. For this example we will spawn 23 threads:</p>
+        <pre>$ ./wpbf.py -t 23 http://www.mysite.com/blog/</pre>
+        <h4>Custom</h4>
+        <p>Using username 'john', not using keywords in the blog content for the wordlist and trough a local proxy:</p>
+        <pre>$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/</pre>
+        <br />
+        <p>For full usage documentation run wpbf with '-h' or '--help' parameters or check the <a href="https://github.com/atarantini/wpbf/">README file in GitHub repository</a></p>
+        <br />
   </div>
 </body>
 </html>
