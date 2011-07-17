@@ -5,8 +5,8 @@
   <title>wpbf - WordPress Brute Force @ GitHub</title>
   <style type="text/css">
     body {
-      margin-top: 1.0em;
-      background-color: #EDC951;
+      background-color: #E5C24E;
+      margin: 0;
       font-family: Helvetica, Arial, FreeSans, san-serif;
       color: #5F4236;
     }
@@ -14,15 +14,26 @@
       margin: 0 auto;
       width: 903px;
     }
-    h1 { font-size: 3.8em; color: #28150b; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
+    h1 {
+        font-size: 3.5em;
+        color: #28150b;
+        background: #6A4A3C;
+        padding: 20px;
+        margin:0;
+        box-shadow: 1px 1px 15px 5px #6a4a3c;
+    }
+    h1 .small { font-size: 0.3em; margin-left: 20px; }
     h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #00828E; }
+    h1 .small a { text-decoration: none; color: #fefefe; }
+    h2 { font-size: 1.5em; color: #007782; letter-spacing: 3px; }
     h3 { text-align: center; color: #CC333F; }
     a { color: #CC333F; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+    .description { font-size: 1.2em; color: #222222; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
-    pre { background: #6A4A3C; color: #EB6841; padding: 15px;}
+    pre { background: #6A4A3C; color: #EB6841; padding: 15px;
+        box-shadow: 1px 1px 10px 2px #444;
+        border-radius: 7px;
+}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
     .footer { text-align:center; padding-top:30px; font-style: italic; }
   </style>
@@ -40,32 +51,33 @@
 </head>
 <body>
   <a href="http://github.com/atarantini/wpbf"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  <h1><a href="http://github.com/atarantini/wpbf"></a>wpbf - WordPress BruteForce<div class="small">by <a href="http://github.com/atarantini">atarantini</a></div></h1>
   <div id="container">
-    <div class="download">
-      <a href="http://github.com/atarantini/wpbf/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/atarantini/wpbf/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
-    <h1><a href="http://github.com/atarantini/wpbf">wpbf - WordPress BruteForce</a>
-      <span class="small">by <a href="http://github.com/atarantini">atarantini</a></span></h1>
     <div class="description">
       Remotely test password strength of WordPress bloging software
     </div>
     <p>wpbf is a python script that helps you to remotely test and audit password strength of WordPress blogs. It currently supports threading, username detection/enumeration, logging and search content for keywords to increase password list.
 <br /><br />
 wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwords used are weak and need to be changed.</p>
-    <h2>Dependencies</h2>
-    <p>Python 2.6+</p>
-    <h2>Install</h2>
-    <p>See <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
-    <h2>License</h2>
-    <p>GPLv3</p>
-    <h2>Authors</h2>
-    <p>Andres Tarantini (atarantini@gmail.com)</p>
-    <h2>Contact</h2>
-    <p>atarantini@gmail.com</p>
+    <h2>Features</h2>
+    <p>
+        <ul>
+            <li>Bruteforce using a dictionary file (a small one is provided)
+            <li>Threads</li>
+            <li>HTTP Proxy Support</li>
+            <li>Username enumeration and detection (TALSOFT-2011-0526, author's archive page and content parsing)</li>
+            <li>Fetch keywords from blog's content and use them in the wordlist</li>
+            <li>Detection of Login LockDown plugin</li>
+            <li>Advanced logging (with it's own configuration file) using Python's logging library</li>
+        </ul>
+    </p>
     <h2>Download</h2>
+    <div class="download">
+      <a href="http://github.com/atarantini/wpbf/zipball/master">
+        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
+      <a href="http://github.com/atarantini/wpbf/tarball/master">
+        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+    </div>
     <p>
       You can download this project in either
       <a href="http://github.com/atarantini/wpbf/zipball/master">zip</a> or
@@ -75,9 +87,15 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
       by running:
       <pre>$ git clone git://github.com/atarantini/wpbf</pre>
     </p>
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/atarantini/wpbf">atarantini/wpbf</a>
-    </div>
+    <h2>Install</h2>
+    <p>Uncompress the downloaded file into any directory, and execute it using ./wpbf</p>
+    <p>For full documentation see <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
+    <h2>Documentation and License</h2>
+    <p><strong>Full documentation and usage in the </strong> <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
+    <p><strong>Repository of </strong><a href="https://github.com/atarantini/wpbf/">wpbf in gitHub</a></p>
+    <p><strong>Dependencies</strong> Python 2.6+</p>
+    <p><strong>License</strong> GPLv3</p>
+    <p><strong>Author</strong> Andres Tarantini (atarantini@gmail.com)</p>
   </div>
 </body>
 </html>
