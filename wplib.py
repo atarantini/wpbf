@@ -247,8 +247,10 @@ class Wp:
         keywords = []
 
         # get keywords from title
-        title = re.search('<title>.*</title>', data, re.IGNORECASE).group()
-        [keywords.insert(0, kw.lower()) for kw in title[7:-8].split(" ")][:-1]
+        title = re.search('<title>.*</title>', data, re.IGNORECASE)
+        if title:
+            title = title.group()
+            [keywords.insert(0, kw.lower()) for kw in title[7:-8].split(" ")][:-1]
 
         # get keywords from url content
         [keywords.append(k.strip()) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
