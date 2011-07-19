@@ -26,9 +26,9 @@ proxy = None
 
 # users
 username = "admin"
-eu_gap_tolerance = 1
+eu_gap_tolerance = 3
 
 # keywords
 min_keyword_len = 3
-min_frequency = 2
+min_frequency = 3
 ignore_with = ['&', ';', '<', '>', '(', ')', '}', '{', '=', '#', ':', '.', '_']
