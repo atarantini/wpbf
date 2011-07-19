@@ -132,16 +132,19 @@ if __name__ == '__main__':
     if config.username not in queue.queue:
         queue.put(config.username)
 
+    # load wordlist into queue
+    logger.debug("Loading wordlist...")
+    try:
+        [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
+    except IOError:
+        logger.error("Can't open '"+config.wordlist+"', the wordlist will not be used!")
+    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
+
     # load into queue additional keywords from blog main page
     if args.nokeywords:
         logger.info("Load into queue additional words using keywords from blog...")
         queue.put(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
-
-    # load wordlist into queue
-    logger.debug("Loading wordlist...")
-    [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
 
     # spawn threads
     logger.info("Bruteforcing...")
@@ -159,7 +162,10 @@ if __name__ == '__main__':
             delta_time = time.time() - start_time
             current_queue = queue.qsize()
             delta_queue = start_queue - current_queue
-            wps = delta_time / delta_queue
+            try:
+                wps = delta_time / delta_queue
+            except ZeroDivisionError:
+                wps = 0.6
             print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
