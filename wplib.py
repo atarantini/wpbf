@@ -76,7 +76,13 @@ class Wp:
     _cache = {}
 
     def __init__(self, base_url, login_script_path="wp-login.php", proxy=None):
+        # Basic filters for the base url
         self._base_url = base_url
+        if self._base_url[0:7] is not 'http://':
+            self._base_url = 'http://'+self._base_url
+        if self._base_url[-1] is not '/':
+            self._base_url = self._base_url+'/'
+
         self._login_script_path = login_script_path
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
