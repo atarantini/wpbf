@@ -52,9 +52,10 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (default: "+config.script_path+")")
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (default: "+str(config.threads)+")")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
-    parser.add_argument('-nk', '--nokeywords', action="store_false", help="Search keywords inside the blog's content and add them to the wordlist")
+    parser.add_argument('-nk', '--nokeywords', action="store_false", help="Don't search keywords in content and add them to the wordlist")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
     parser.add_argument('-eugt', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
+    parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     args = parser.parse_args()
     config.wp_base_url = args.url
     if args.wordlist:
@@ -145,6 +146,11 @@ if __name__ == '__main__':
         logger.info("Load into queue additional words using keywords from blog...")
         queue.put(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+
+    # wordpress version
+    if args.nofingerprint:
+        if wp.fingerprint():
+            logger.info("WordPress version: "+wp.get_version())
 
     # spawn threads
     logger.info("Bruteforcing...")

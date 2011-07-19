@@ -71,6 +71,7 @@ class Wp:
     _login_script_path = ''
     _login_url = ''
     _proxy = None
+    _version = None
 
     _cache = {}
 
@@ -91,6 +92,9 @@ class Wp:
         """Returns base URL"""
         return self._base_url
 
+    def get_version(self):
+        """Returns WordPress version"""
+        return self._version
 
     # General methods
 
@@ -261,7 +265,7 @@ class Wp:
         return keywords
 
     def check_loginlockdown(self):
-        """Check if "Login LockDown" plugin is active
+        """Check if "Login LockDown" plugin is active (Alip Aswalid)
 
         url   -- Login form URL
         proxy -- URL for a HTTP Proxy
@@ -269,5 +273,18 @@ class Wp:
         data = self.request(self._login_url, [], True)
         if "lockdown" in data.lower():
             return True
+        else:
+            return False
+
+    def fingerprint(self):
+        """Try to fetch WordPress version from "generator" meta tag in main page
+
+        return - WordPress version or false if now found
+        """
+        data = self.request(self._base_url, [], True)
+        m = re.search('<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />', data)
+        if m:
+            self._version = m.group(1)
+            return self._version
         else:
             return False
