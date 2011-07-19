@@ -6,12 +6,13 @@ blog
 demo
 administrador
 administrator
-admin123
+admin1234
 asdf
-a12345
+asdf1234
 asdfgh
+qwert
 qwerty
 1234
-12345
 123456
+123456789
 qawsed

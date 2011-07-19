@@ -12,7 +12,7 @@ Description:
     find a correct one. When the script success login in, the matched username and password is logged
     and shown on the screen.
 
-    For faster results you can spawn various threads but BE CAREFULL not to flood/DOS the site. Default
+    For faster results you can spawn threads but BE CAREFULL not to flood/DoS the site. Default
     settings can be changed in "config.py" and "logging.conf" files. The wordlist must have one entry per
     line, a small wordlist is provided for testing purposes.
 
@@ -38,6 +38,7 @@ Features:
     * Threads
     * Use keywords from blog's content in the wordlist
     * HTTP Proxy Support
+    * Basic WordPress Fingerprint
     * Detection of Login LockDown plugin
     * Advanced logging using Python's logging library and logging configuration file
 
@@ -54,15 +55,15 @@ Usage:
       url                   base URL where WordPress is installed (ex: http://www.myblog.com/)
 
     optional arguments:
-      -w WORDLIST, --wordlist WORDLIST		worldlist file (default: wordlist.txt)
-      -u USERNAME, --username USERNAME		username (defaul: admin)
-      -s SCRIPTPATH, --scriptpath SCRIPTPATH	relative path to the login form (default: wp-login.php)
-      -t THREADS, --threads THREADS		how many threads the script will spawn (default: 5)
-      -p PROXY, --proxy PROXY			http proxy (ex: http://localhost:8008/)
-      -nk, --nokeywords				Do not search keywords inside the blog's content and add them
-						to the wordlist
-      -eu, --enumerateusers			Only enumerate users
-      -eugt, --enumeratetolerance		User ID gap tolerance to use in username enumeration
+      -w WORDLIST, --wordlist WORDLIST		        Worldlist file (default: wordlist.txt)
+      -u USERNAME, --username USERNAME		        Username (defaul: admin)
+      -s SCRIPTPATH, --scriptpath SCRIPTPATH	        Relative path to the login form (default: wp-login.php)
+      -t THREADS, --threads THREADS		        How many threads the script will spawn (default: 5)
+      -p PROXY, --proxy PROXY			        HTTP proxy (ex: http://localhost:8008/)
+      -nk, --nokeywords				        Don't search for keywords in content for the wordlist
+      -eu, --enumerateusers			        Only enumerate users
+      -eugt, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
+      -nf, --nofingerprint                              Don't fingerprint WordPress
 
 
 Examples:
