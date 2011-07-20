@@ -150,7 +150,7 @@ class Wp:
         """
         data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))])
         if "ERROR" in data or "Error" in data or "login_error" in data:
-            if "usuario es incorrecto" in data or "Invalid username" in data:
+            if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
                 return False
             else:
                 return True
@@ -226,8 +226,8 @@ class Wp:
                     title_search = re.search("<title>(.*)</title>", data, re.IGNORECASE)
                     if title_search:
                         title =  title_search.group(1)
-                        # If the title is the same than the last user ID requested, there are no new users
-                        if title == title_cache:
+                        # If the title is the same than the last user ID requested or empty, there are no new users
+                        if title == title_cache or ' ' not in title:
                             break
                         else:
                             title_cache = title
