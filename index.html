@@ -67,8 +67,9 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
             <li>Bruteforce using a dictionary file (a small one is provided)
             <li>Threads</li>
             <li>HTTP Proxy Support</li>
-            <li>Username enumeration and detection (TALSOFT-2011-0526, author's archive page and content parsing)</li>
+            <li>Username enumeration/detection (TALSOFT-2011-0526 with fallback to author's archive page and content parsing)</li>
             <li>Fetch keywords from blog's content and use them in the wordlist</li>
+            <li>WordPress fingerprint</li>
             <li>Detection of Login LockDown plugin</li>
             <li>Advanced logging (with it's own configuration file) using Python's logging library</li>
         </ul>
@@ -105,6 +106,7 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
         <pre>$ ./wpbf.py http://localhost/wordpress/
     2011-06-18 19:11:41,461 - wpbf - INFO - Target URL: http://localhost/wordpress/wp-login.php
     2011-06-18 19:11:41,463 - wpbf - INFO - Checking URL & username...
+    2011-06-18 19:11:43,781 - wpbf - INFO - WordPress version: 2.8.1
     2011-06-18 19:11:45,073 - wpbf - INFO - Bruteforcing...
     3 words left
     2011-06-18 19:11:55,147 - wpbf - INFO - Done.
