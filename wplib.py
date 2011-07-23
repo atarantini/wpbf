@@ -83,7 +83,7 @@ class Wp:
         if self._base_url[-1] != '/':
             self._base_url = self._base_url+'/'
 
-        self._login_script_path = login_script_path
+        self._login_script_path = login_script_path.lstrip("/")
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
 
@@ -190,7 +190,9 @@ class Wp:
         """Enumerate usernames
 
         Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in
-        WordPress > 3.2-beta2, or try to match from title of the user's archive page
+        WordPress > 3.2-beta2.
+
+        If not redirect is done try to match username from title of the user's archive page
 
         gap_tolerance -- Tolerance for user ID gaps in the sequence (this gaps are present when users are deleted and new users created)
         """
@@ -202,7 +204,7 @@ class Wp:
         while True:
             try:
                 uid = uid + 1
-                url = self._base_url.rstrip("/")+"/?author="+str(uid)
+                url = self._base_url+"?author="+str(uid)
                 request = urllib2.Request(url)
                 request.add_header("User-agent", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1")
                 if self._proxy:
@@ -212,7 +214,7 @@ class Wp:
                     opener = urllib2.build_opener()
                 response = opener.open(request)
                 data = response.read()
-                self._cache[url] = data	    # save response in cache
+                self._cache[url] = data     # save response in cache
                 parsed_response_url = urlparse(response.geturl())
                 response_path = parsed_response_url.path
                 if 'author' in response_path:
