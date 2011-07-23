@@ -18,7 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
 """
-import urllib, urllib2, re
+import urllib, urllib2, re, logging
 from random import randint
 from urlparse import urlparse
 
@@ -87,6 +87,7 @@ class Wp:
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
 
+        self.logger = logging.getLogger("wpbf")
 
     # Getters
 
@@ -121,6 +122,7 @@ class Wp:
             opener = urllib2.build_opener(proxy_handler)
         else:
             opener = urllib2.build_opener()
+        self.logger.debug("Requesting %s %s", url, params)
         response = opener.open(request, urllib.urlencode(params)).read()
 
         if cache and len(params) is 0:
@@ -212,6 +214,7 @@ class Wp:
                     opener = urllib2.build_opener(proxy_handler)
                 else:
                     opener = urllib2.build_opener()
+                self.logger.debug("Requesting %s", url)
                 response = opener.open(request)
                 data = response.read()
                 self._cache[url] = data     # save response in cache
