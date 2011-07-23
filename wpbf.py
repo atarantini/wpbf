@@ -33,15 +33,15 @@ class WpbfThread(threading.Thread):
         while self._queue.qsize() > 0:
             try:
                 word = self._queue.get()
-                logger.debug("Trying with "+word)
+                logger.debug("Trying with %s", word)
                 if wp.login(config.username, word):
-                    logger.info("Password '"+word+"' found for username '"+config.username+"' on "+wp.get_login_url())
+                    logger.info("Password '%s' found for username '%s' on %s", word, config.username, wp.get_login_url())
                     self._queue.queue.clear()
                 self._queue.task_done()
             except urllib2.HTTPError, e:
-                logger.debug("HTTP Error: "+str(e)+"for: "+word)
+                logger.debug("HTTP Error: %s for: %s", str(e), word)
                 self._queue.put(word)
-                logger.debug("Requeued: "+word)
+                logger.debug("Requeued: %s", word)
 
 if __name__ == '__main__':
     #parse command line arguments
@@ -81,12 +81,12 @@ if __name__ == '__main__':
     wp = wplib.Wp(config.wp_base_url, config.script_path, config.proxy)
 
     # build target url
-    logger.info("Target URL: "+wp.get_base_url())
+    logger.info("Target URL: %s", wp.get_base_url())
 
     # enumerate usernames
     if args.enumerateusers:
         logger.info("Enumerating users...")
-        logger.info("Usernames: "+", ".join(wp.enumerate_usernames(config.eu_gap_tolerance)))
+        logger.info("Usernames: %s", ", ".join(wp.enumerate_usernames(config.eu_gap_tolerance)))
         exit(0)
 
     # queue
@@ -96,11 +96,11 @@ if __name__ == '__main__':
     logger.info("Checking URL & username...")
     try:
         if wp.check_username(config.username) is False:
-            logger.warning("Possible non existent username: "+config.username)
+            logger.warning("Possible non existent username: %s", config.username)
             logger.info("Enumerating users...")
             enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
             if len(enumerated_usernames) > 0:
-                logger.info("Usernames: "+", ".join(enumerated_usernames))
+                logger.info("Usernames: %s", ", ".join(enumerated_usernames))
                 config.username = enumerated_usernames[0]
             else:
                 logger.info("Trying to find username in HTML content...")
@@ -110,15 +110,15 @@ if __name__ == '__main__':
                 sys.exit(0)
             else:
                 if wp.check_username(config.username) is False:
-                    logger.error("Username "+config.username+" didn't work :(")
+                    logger.error("Username %s didn't work :(", config.username)
                     sys.exit(0)
                 else:
-                    logger.info("Using username "+config.username)
+                    logger.info("Using username %s", config.username)
     except urllib2.HTTPError:
-        logger.error("HTTP Error on: "+wp.get_login_url())
+        logger.error("HTTP Error on: %s", wp.get_login_url())
         sys.exit(0)
     except urllib2.URLError:
-        logger.error("URL Error on: "+wp.get_login_url())
+        logger.error("URL Error on: %s", wp.get_login_url())
         if config.proxy:
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
@@ -138,8 +138,8 @@ if __name__ == '__main__':
     try:
         [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
     except IOError:
-        logger.error("Can't open '"+config.wordlist+"', the wordlist will not be used!")
-    logger.debug(str(queue.qsize())+" words loaded from "+config.wordlist)
+        logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
+    logger.debug("%s words loaded from %s", str(queue.qsize()), config.wordlist)
 
     # load into queue additional keywords from blog main page
     if args.nokeywords:
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     # wordpress version
     if args.nofingerprint:
         if wp.fingerprint():
-            logger.info("WordPress version: "+wp.get_version())
+            logger.info("WordPress version: %s", wp.get_version())
 
     # spawn threads
     logger.info("Bruteforcing...")
