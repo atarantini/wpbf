@@ -62,7 +62,7 @@ Usage:
       -p PROXY, --proxy PROXY			        HTTP proxy (ex: http://localhost:8008/)
       -nk, --nokeywords				        Don't search for keywords in content for the wordlist
       -eu, --enumerateusers			        Only enumerate users
-      -eugt, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
+      -eut, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
       -nf, --nofingerprint                              Don't fingerprint WordPress
 
 
