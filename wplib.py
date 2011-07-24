@@ -221,8 +221,13 @@ class Wp:
                 parsed_response_url = urlparse(response.geturl())
                 response_path = parsed_response_url.path
                 if 'author' in response_path:
-                    # A redirect was made and the username is exposed
-                    usernames.append(response_path.split("/")[-2])
+                    # A redirect was made and the username is exposed. The username is the last part of the
+                    # response_path (sometimes the response path can contain a trailing slash)
+                    if response_path[-1] is "/":
+                        username = response_path.split("/")[-2]
+                    else:
+                        username = response_path.split("/")[-1]
+                    usernames.append(username)
                     redirect = True
                     gaps = 0
                 elif parsed_response_url.geturl() == url and redirect is False:
