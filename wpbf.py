@@ -48,16 +48,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Bruteforce WordPress login form to test password strenght. Currently supports threads, wordlist and basic username detection.')
     parser.add_argument('url', type=str,  help='base URL where WordPress is installed')
     parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (default: "+config.wordlist+")")
+    parser.add_argument('-nk', '--nokeywords', action="store_false", help="Don't search keywords in content and add them to the wordlist")
     parser.add_argument('-u', '--username', default=config.username, help="username (default: "+config.username+")")
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (default: "+config.script_path+")")
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (default: "+str(config.threads)+")")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
-    parser.add_argument('-nk', '--nokeywords', action="store_false", help="Don't search keywords in content and add them to the wordlist")
+    parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
     parser.add_argument('-eut', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
-    parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
+    parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
     args = parser.parse_args()
     config.wp_base_url = args.url
+    if args.test:
+        import doctest
+        doctest.testmod(wplib)
+        exit(0)
     if args.wordlist:
         config.wordlist = args.wordlist
     if args.username:

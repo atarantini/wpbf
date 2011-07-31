@@ -26,12 +26,19 @@ def rm_duplicates(seq):
     """Remove duplicates from a list
 
     This Function have been made by Dave Kirby and taken from site http://www.peterbe.com/plog/uniqifiers-benchmark
+
+    >>> rm_duplicates([1, 2, 3, 3, 4])
+    [1, 2, 3, 4]
     """
     seen = set()
     return [x for x in seq if x not in seen and not seen.add(x)]
 
 def filter_domain(domain):
-    """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name """
+    """ Strips TLD and ccTLD (ex: .com, .ar, etc) from a domain name
+
+    >>> filter_domain("www.dominio.com.ar")
+    'dominio'
+    """
     words = [".com", "www.", ".ar", ".cl", ".py", ".org", ".net", ".mx", ".bo", ".gob", ".gov", ".edu"]
     for word in words:
         domain = domain.replace(word, "")

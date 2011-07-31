@@ -64,6 +64,7 @@ Usage:
       -eu, --enumerateusers			        Only enumerate users
       -eut, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
       -nf, --nofingerprint                              Don't fingerprint WordPress
+      --test                                            Run python doctests (you can use a dummy URL here)
 
 
 Examples:
