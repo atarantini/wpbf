@@ -120,6 +120,7 @@ class Wp:
         cache  -- True if you want request to be cached and get a cached version of the request
         """
         if cache and self._cache.has_key(url) and len(params) is 0:
+            self.logger.debug("Cached %s %s", url, params)
             return self._cache[url]
 
         request = urllib2.Request(url)
@@ -210,7 +211,7 @@ class Wp:
         gaps = 0
         title_cache = ""
         redirect = False
-        while True:
+        while gaps <= gap_tolerance:
             try:
                 uid = uid + 1
                 url = self._base_url+"?author="+str(uid)
@@ -234,24 +235,25 @@ class Wp:
                         username = response_path.split("/")[-2]
                     else:
                         username = response_path.split("/")[-1]
+                    self.logger.debug("Possible username %s (by redirect)", username)
                     usernames.append(username)
                     redirect = True
                     gaps = 0
-                elif parsed_response_url.geturl() == url and redirect is False:
-                    # There was no redirection but the user ID seems to exists so we will try to
-                    # find the username as the first word in the title
+                elif parsed_response_url.geturl() == url:
+                    # There was no redirection but the user ID seems to exists (because not 404) so we will
+                    # try to find the username as the first word in the title
                     title_search = re.search("<title>(.*)</title>", data, re.IGNORECASE)
                     if title_search:
                         title =  title_search.group(1)
                         # If the title is the same than the last user ID requested or empty, there are no new users
                         if title == title_cache or ' ' not in title:
-                            break
+                            self.logger.debug("Title cache hit: %s", title)
+                            gaps = gaps + 1
                         else:
                             title_cache = title
+                            self.logger.debug("Possible username %s (by title)", title.split()[0])
                             usernames.append(title.split()[0])
                             gaps = 0
-                else:
-                    break
             except urllib2.HTTPError:
                 gaps = gaps + 1
                 if gaps > gap_tolerance:
