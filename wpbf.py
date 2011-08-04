@@ -33,7 +33,6 @@ class WpbfThread(threading.Thread):
         while self._queue.qsize() > 0:
             try:
                 word = self._queue.get()
-                logger.debug("Trying with %s", word)
                 if wp.login(config.username, word):
                     logger.info("Password '%s' found for username '%s' on %s", word, config.username, wp.get_login_url())
                     self._queue.queue.clear()

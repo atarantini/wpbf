@@ -31,4 +31,4 @@ eu_gap_tolerance = 3
 # keywords
 min_keyword_len = 3
 min_frequency = 3
-ignore_with = ['&', ';', '<', '>', '(', ')', '}', '{', '=', '#', ':', '.', '_', '/']
+ignore_with = ['&', ';', '<', '>', '(', ')', '}', '{', '=', '#', ':', '.', '_', '/', '\\']

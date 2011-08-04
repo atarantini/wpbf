@@ -209,8 +209,6 @@ class Wp:
         uid = 0
         usernames = []
         gaps = 0
-        title_cache = ""
-        redirect = False
         while gaps <= gap_tolerance:
             try:
                 uid = uid + 1
@@ -239,30 +237,53 @@ class Wp:
                     usernames.append(username)
                     redirect = True
                     gaps = 0
+
+                    # Sometimes the user exposed by the redirect isn't accurate, so we will search by
+                    # title anyway and if the username is different check it
+                    username_title = self.get_user_from_title(data)
+                    if username_title and username_title not in usernames:
+                        usernames.append(username_title)
                 elif parsed_response_url.geturl() == url:
                     # There was no redirection but the user ID seems to exists (because not 404) so we will
                     # try to find the username as the first word in the title
-                    title_search = re.search("<title>(.*)</title>", data, re.IGNORECASE)
-                    if title_search:
-                        title =  title_search.group(1)
-                        # If the title is the same than the last user ID requested or empty, there are no new users
-                        if title == title_cache or ' ' not in title:
-                            self.logger.debug("Title cache hit: %s", title)
-                            gaps = gaps + 1
-                        else:
-                            title_cache = title
-                            self.logger.debug("Possible username %s (by title)", title.split()[0])
-                            usernames.append(title.split()[0])
-                            gaps = 0
+                    username = self.get_user_from_title(data)
+                    if username:
+                        usernames.append(username)
+                        gaps = 0
+                    else:
+                        gaps += 1
+
             except urllib2.HTTPError:
-                gaps = gaps + 1
+                gaps += 1
                 if gaps > gap_tolerance:
                     break
 
         return [user for user in usernames if self.check_username(user)]
 
+    def get_user_from_title(self, content):
+        """Fetch the contents of the <title> tag and returns a username (usually, the first word)
+
+        content    -- html content
+        last_title -- last title found
+        """
+        # There was no redirection but the user ID seems to exists (because not 404) so we will
+        # try to find the username as the first word in the title
+        title_search = re.search("<title>(.*)</title>", content, re.IGNORECASE)
+        if title_search:
+            title =  title_search.group(1)
+            # If the title is the same than the last title requested, or empty, there are no new users
+            if (self._cache.has_key('title') and title == self._cache['title']) or ' ' not in title:
+                return False
+            else:
+                self._cache['title'] = title
+                username = title.split()[0]
+                self.logger.debug("Possible username %s (by title)", username)
+                return username
+        else:
+                return False
+
     def find_keywords_in_url(self, min_keyword_len=3, min_frequency=2, ignore_with=False):
-        """Try to find relevant keywords within the given URL, keywords will be used added to the wordlist
+        """Try to find relevant keywords within the given URL, keywords will be used in the password wordlist
 
         min_keyword_len -- Filter keywords that doesn't have this minimum length
         min_frequency   -- Filter keywords number of times than a keyword appears within the content
