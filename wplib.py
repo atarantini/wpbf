@@ -167,18 +167,26 @@ class Wp:
         else:
             return True
 
-    def find_username(self):
+    def find_username(self, url=False):
         """Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
 
         url   -- Any URL in the blog that can contain author references
         proxy -- URL of a HTTP proxy
         """
-        data =  self.request(self._base_url, [])
+        if url:
+            data =  self.request(url, [], True)
+        else:
+            data =  self.request(self._base_url, [], True)
         username = None
 
-        match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
+        match = re.search('/author/(.*?)/feed', data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
         if match:
-            username = match.group()[8:-4]
+            username = match.group()[8:-5]
+
+        if username is None:
+            match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
+            if match:
+                username = match.group()[8:-4]
 
         if username is None:
             match = re.search('View all posts by (.*)"', data, re.IGNORECASE)       # search "View all posts by {AUTHOR}"
@@ -194,6 +202,7 @@ class Wp:
             return False
         else:
             username = username.strip().replace("/","")
+            self.logger.debug("Possible username %s (from content)", username)
             return username
 
     def enumerate_usernames(self, gap_tolerance=0):
@@ -243,6 +252,12 @@ class Wp:
                 username_title = self.get_user_from_title(data)
                 if username_title and username_title not in usernames:
                     usernames.append(username_title)
+                    gaps = 0
+
+                # Check for author in content
+                username_content = self.find_username(url)
+                if username_content and username_content not in usernames:
+                    usernames.append(username_content)
                     gaps = 0
 
             except urllib2.HTTPError:
