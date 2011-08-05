@@ -226,6 +226,7 @@ class Wp:
                 self._cache[url] = data     # save response in cache
                 parsed_response_url = urlparse(response.geturl())
                 response_path = parsed_response_url.path
+                # Check for author in redirection
                 if 'author' in response_path:
                     # A redirect was made and the username is exposed. The username is the last part of the
                     # response_path (sometimes the response path can contain a trailing slash)
@@ -238,25 +239,16 @@ class Wp:
                     redirect = True
                     gaps = 0
 
-                    # Sometimes the user exposed by the redirect isn't accurate, so we will search by
-                    # title anyway and if the username is different check it
-                    username_title = self.get_user_from_title(data)
-                    if username_title and username_title not in usernames:
-                        usernames.append(username_title)
-                elif parsed_response_url.geturl() == url:
-                    # There was no redirection but the user ID seems to exists (because not 404) so we will
-                    # try to find the username as the first word in the title
-                    username = self.get_user_from_title(data)
-                    if username:
-                        usernames.append(username)
-                        gaps = 0
-                    else:
-                        gaps += 1
+                # Check for author in title
+                username_title = self.get_user_from_title(data)
+                if username_title and username_title not in usernames:
+                    usernames.append(username_title)
+                    gaps = 0
 
             except urllib2.HTTPError:
                 gaps += 1
-                if gaps > gap_tolerance:
-                    break
+
+            gaps += 1
 
         return [user for user in usernames if self.check_username(user)]
 
