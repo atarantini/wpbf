@@ -51,6 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
     parser.add_argument('-eut', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
+    parser.add_argument('-pl', '--pluginscan', action="store_true", help="Detect plugins in WordPress using a list of popular/vulnerable plugins")
     parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
     args = parser.parse_args()
     config.wp_base_url = args.url
@@ -102,18 +103,9 @@ if __name__ == '__main__':
             if len(enumerated_usernames) > 0:
                 logger.info("Usernames: %s", ", ".join(enumerated_usernames))
                 config.username = enumerated_usernames[0]
-            else:
-                logger.info("Trying to find username in HTML content...")
-                config.username = wp.find_username()
             if config.username is False:
                 logger.error("Can't find username :(")
                 sys.exit(0)
-            else:
-                if wp.check_username(config.username) is False:
-                    logger.error("Username %s didn't work :(", config.username)
-                    sys.exit(0)
-                else:
-                    logger.info("Using username %s", config.username)
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
         sys.exit(0)
@@ -133,6 +125,15 @@ if __name__ == '__main__':
         logger.warning("Login LockDown plugin is active, bruteforce will be useless")
         sys.exit(0)
 
+    # load plugin scan tasks into queue
+    if args.pluginscan:
+        plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
+        logger.info("%s plugins will be tested", str(len(plugins_list)))
+        for plugin in plugins_list:
+            plugin_task = wptask.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy)
+            plugin_task.setPluginName(plugin)
+            task_queue.put(plugin_task)
+
     # load wordlist into queue
     wordlist = [config.username]    # add username to the wordlist
     logger.debug("Loading wordlist...")
@@ -142,13 +143,13 @@ if __name__ == '__main__':
         logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
     logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
 
-    # load into queue additional keywords from blog main page
+    # load into wordlist additional keywords from blog main page
     if args.nokeywords:
-        logger.info("Loading additional keywords from blog to the wordlist...")
         wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [wordlist.append(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
     # load logins into task queue
+    logger.info("%s passwords will be tested", str(len(wordlist)))
     for password in wordlist:
         login_task = wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy)
         login_task.setUsername(config.username)
@@ -175,7 +176,7 @@ if __name__ == '__main__':
                 wps = delta_time / delta_queue
             except ZeroDivisionError:
                 wps = 0.6
-            print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
+            print str(current_queue)+" tasks left / "+str(round(1 / wps, 2))+" tasks per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
             task_queue.queue.clear()

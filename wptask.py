@@ -38,8 +38,8 @@ class WpTaskLogin(Wp, WpTask):
 
     Note that username and password must be set invoking setUsername and setPassword methods.
     """
-    _username = ''
-    _password = ''
+    _username = ""
+    _password = ""
 
     def setUsername(self, username):
         self._username = username
@@ -52,3 +52,17 @@ class WpTaskLogin(Wp, WpTask):
             # username and password found: log data and stop all tasks
             self.logger.info("Password '%s' found for username '%s' on %s", self._password, self._username, self.get_login_url())
             raise WpTaskStop
+
+class WpTaskPluginCheck(Wp, WpTask):
+    """Check if a plugin exists
+
+    Note that plugin name must be set invoking setPluginName method. TODO: Refactor this!
+    """
+    _plugin = ""
+
+    def setPluginName(self, plugin):
+        self._plugin = plugin
+
+    def run(self):
+        if self.check_plugin(self._plugin):
+            self.logger.info("Plugin '%s' was found", self._plugin)

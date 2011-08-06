@@ -112,14 +112,15 @@ class Wp:
 
     # General methods
 
-    def request(self, url, params, cache=False):
+    def request(self, url, params, cache=False, data=True):
         """Request an URL with a given parameters and proxy
 
         url    -- URL to request
         params -- dictionary with POST variables
         cache  -- True if you want request to be cached and get a cached version of the request
+        data   -- If false, return request object, else return data. Cached data must be retrived with data=True
         """
-        if cache and self._cache.has_key(url) and len(params) is 0:
+        if cache and data and self._cache.has_key(url) and len(params) is 0:
             self.logger.debug("Cached %s %s", url, params)
             return self._cache[url]
 
@@ -131,10 +132,16 @@ class Wp:
         else:
             opener = urllib2.build_opener()
         self.logger.debug("Requesting %s %s", url, params)
-        response = opener.open(request, urllib.urlencode(params)).read()
+        try:
+            response = opener.open(request, urllib.urlencode(params))
+        except urllib2.HTTPError:
+            return False
 
-        if cache and len(params) is 0:
-            self._cache[url] = response
+        if cache and data and len(params) is 0:
+            self._cache[url] = response.read()
+
+        if data:
+            return response.read()
 
         return response
 
@@ -330,12 +337,24 @@ class Wp:
         else:
             return False
 
+    def check_plugin(self, plugin):
+        """Try to fetch WordPress version from "generator" meta tag in main page
+
+        return - WordPress version or false if not found
+        """
+        url = self._base_url+"wp-content/plugins/"+plugin
+        data = self.request(url, [], True)
+        if data:
+            return True
+        else:
+            return False
+
     def fingerprint(self):
         """Try to fetch WordPress version from "generator" meta tag in main page
 
         return - WordPress version or false if not found
         """
-        data = self.request(self._base_url, [], True)
+        data = self.request(self._base_url, [], cache=True)
         m = re.search('<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />', data)
         if m:
             self._version = m.group(1)

@@ -19,6 +19,7 @@
 # along with wpbf.  If not, see <http://www.gnu.org/licenses/>.
 #
 wordlist = "wordlist.txt"
+plugins_list = "plugins.txt"
 script_path = "wp-login.php"
 url = "http://localhost/wordpress/wp-login.php"
 threads = 5
