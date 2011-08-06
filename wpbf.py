@@ -106,18 +106,9 @@ if __name__ == '__main__':
             if len(enumerated_usernames) > 0:
                 logger.info("Usernames: %s", ", ".join(enumerated_usernames))
                 config.username = enumerated_usernames[0]
-            else:
-                logger.info("Trying to find username in HTML content...")
-                config.username = wp.find_username()
             if config.username is False:
                 logger.error("Can't find username :(")
                 sys.exit(0)
-            else:
-                if wp.check_username(config.username) is False:
-                    logger.error("Username %s didn't work :(", config.username)
-                    sys.exit(0)
-                else:
-                    logger.info("Using username %s", config.username)
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
         sys.exit(0)
