@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # load into wordlist additional keywords from blog main page
     if args.nokeywords:
         wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
-        [wordlist.append(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
+        [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
 
     # load logins into task queue
     logger.info("%s passwords will be tested", str(len(wordlist)))
@@ -155,6 +155,7 @@ if __name__ == '__main__':
         login_task.setUsername(config.username)
         login_task.setPassword(password)
         task_queue.put(login_task)
+    del wordlist
 
     # start workers
     logger.info("Starting workers...")

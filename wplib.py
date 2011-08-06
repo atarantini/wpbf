@@ -134,14 +134,16 @@ class Wp:
         self.logger.debug("Requesting %s %s", url, params)
         try:
             response = opener.open(request, urllib.urlencode(params))
+            response_data = response.read()
         except urllib2.HTTPError:
             return False
 
         if cache and data and len(params) is 0:
-            self._cache[url] = response.read()
+            self._cache[url] = response_data
+            pass
 
         if data:
-            return response.read()
+            return response_data
 
         return response
 
@@ -302,7 +304,7 @@ class Wp:
         min_frequency   -- Filter keywords number of times than a keyword appears within the content
         ignore_with     -- Ignore words that contains any characters in this list
         """
-        data =  self.request(self._base_url, [], True)
+        data =  self.request(self._base_url, [], cache=True)
         keywords = []
 
         # get keywords from title
@@ -343,8 +345,8 @@ class Wp:
         return - WordPress version or false if not found
         """
         url = self._base_url+"wp-content/plugins/"+plugin
-        data = self.request(url, [], True)
-        if data:
+        data = self.request(url, [])
+        if data is not False:
             return True
         else:
             return False
