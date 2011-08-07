@@ -132,23 +132,19 @@ if __name__ == '__main__':
         for plugin in plugins_list:
             task_queue.put(wptask.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
 
-    # load wordlist into queue
-    wordlist = [config.username]    # add username to the wordlist
+    # load login check tasks into queue
     logger.debug("Loading wordlist...")
+    wordlist = [username.strip() for username in usernames]
     try:
         [wordlist.append(w.strip()) for w in open(config.wordlist, "r").readlines()]
     except IOError:
         logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
     logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
-
-    # load into wordlist additional keywords from blog main page
     if args.nokeywords:
+        # load into wordlist additional keywords from blog main page
         wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
         [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
-
-    # load logins into task queue
     logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
-    [wordlist.append(u) for u in usernames]
     for username in usernames:
         for password in wordlist:
             task_queue.put(wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password))
