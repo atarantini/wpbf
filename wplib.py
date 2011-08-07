@@ -156,25 +156,25 @@ class Wp:
         username -- Wordpress username
         password -- Password for the supplied username
         """
-        data = self.request(self._login_url, [('log', username), ('pwd', password)])
-        if "ERROR" in data or "Error" in data or "login_error" in data:
-            return False
-        else:
+        data = self.request(self._login_url, [('log', username), ('pwd', password)], cache=False, data=True)
+        if data:
+            if "ERROR" in data or "Error" in data or "login_error" in data or "incorrect" in data.lower():
+                return False
             return True
+        return False
 
     def check_username(self, username):
         """Try to login into WordPress and check in the returned data contains username errors
 
         username -- Wordpress username
         """
-        data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))])
-        if "ERROR" in data or "Error" in data or "login_error" in data:
-            if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
-                return False
-            else:
+        data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))], cache=False, data=True)
+        if data:
+            if "ERROR" in data or "Error" in data or "login_error" in data:
+                if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
+                    return False
                 return True
-        else:
-            return True
+        return False
 
     def find_username(self, url=False):
         """Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
@@ -260,6 +260,8 @@ class Wp:
                 username_title = self.get_user_from_title(data)
                 if username_title and username_title not in usernames:
                     usernames.append(username_title)
+                    if username_title.lower() not in usernames:
+                        usernames.append(username_title.lower())
                     gaps = 0
 
                 # Check for author in content
