@@ -112,7 +112,7 @@ class Wp:
 
     # General methods
 
-    def request(self, url, params, cache=False, data=True):
+    def request(self, url, params=[], cache=False, data=True):
         """Request an URL with a given parameters and proxy
 
         url    -- URL to request
@@ -156,7 +156,7 @@ class Wp:
         username -- Wordpress username
         password -- Password for the supplied username
         """
-        data = self.request(self._login_url, [('log', username), ('pwd', password)], cache=False, data=True)
+        data = self.request(self._login_url, [('log', username), ('pwd', password)])
         if data:
             if "ERROR" in data or "Error" in data or "login_error" in data or "incorrect" in data.lower():
                 return False
@@ -168,7 +168,7 @@ class Wp:
 
         username -- Wordpress username
         """
-        data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))], cache=False, data=True)
+        data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))])
         if data:
             if "ERROR" in data or "Error" in data or "login_error" in data:
                 if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
@@ -182,9 +182,9 @@ class Wp:
         url   -- Any URL in the blog that can contain author references
         """
         if url:
-            data =  self.request(url, [], True)
+            data =  self.request(url, cache=True)
         else:
-            data =  self.request(self._base_url, [], True)
+            data =  self.request(self._base_url, cache=True)
         username = None
 
         match = re.search('/author/(.*?)/feed', data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
@@ -306,7 +306,7 @@ class Wp:
         min_frequency   -- Filter keywords number of times than a keyword appears within the content
         ignore_with     -- Ignore words that contains any characters in this list
         """
-        data =  self.request(self._base_url, [], cache=True)
+        data =  self.request(self._base_url, cache=True)
         keywords = []
 
         # get keywords from title
@@ -335,7 +335,7 @@ class Wp:
         url   -- Login form URL
         proxy -- URL for a HTTP Proxy
         """
-        data = self.request(self._login_url, [], True)
+        data = self.request(self._login_url, cache=True)
         if "lockdown" in data.lower():
             return True
         else:
@@ -347,7 +347,7 @@ class Wp:
         return - WordPress version or false if not found
         """
         url = self._base_url+"wp-content/plugins/"+plugin
-        data = self.request(url, [])
+        data = self.request(url)
         if data is not False:
             return True
         else:
@@ -358,7 +358,7 @@ class Wp:
 
         return - WordPress version or false if not found
         """
-        data = self.request(self._base_url, [], cache=True)
+        data = self.request(self._base_url, cache=True)
         m = re.search('<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />', data)
         if m:
             self._version = m.group(1)
