@@ -37,8 +37,21 @@ class WpbfWorker(threading.Thread):
 
 class WpTask():
     """Base task class"""
+
+    _task_queue = False
+    _requeue = False
+
     def run(self):
         pass
+
+    def requeue(self):
+        """Requeue a task"""
+        if self._requeue and self._keywords.has_key('task_queue'):
+            self._task_queue = self._keywords['task_queue']
+            self._task_queue.put(self)
+            self._requeue = False
+            return True
+        return False
 
 class WpTaskStop(Exception):
     """Stop all tasks"""
@@ -62,12 +75,10 @@ class WpTaskLogin(Wp, WpTask):
             # username and password found: log data and stop all tasks
             self.logger.info("Password '%s' found for username '%s' on %s", self._keywords['password'], self._keywords['username'], self.get_login_url())
             raise WpTaskStop
-            return True
-        return False
 
 class WpTaskPluginCheck(Wp, WpTask):
     """
-    Check if a plugin exists. If not 404 error is found and request is completed, the 
+    Check if a plugin exists. If not 404 error is found and request is completed, the
     plugin name will be logged
 
     name -- string representing the plugin name/directory
