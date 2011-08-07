@@ -19,24 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging, logging.config
 import urllib2, urlparse
-import sys, threading, Queue, time, argparse
+import sys, Queue, time, argparse
 
-import config, wplib, wptask
-
-class WpbfWorker(threading.Thread):
-    """Handle threads that consume the tasks queue"""
-    def __init__(self, task_queue):
-        threading.Thread.__init__(self)
-        self._queue = task_queue
-
-    def run(self):
-        while self._queue.qsize() > 0:
-            try:
-                task = self._queue.get()
-                task.run()
-                self._queue.task_done()
-            except wptask.WpTaskStop:
-                self._queue.queue.clear()
+import config, wplib, wpworker
 
 if __name__ == '__main__':
     #parse command line arguments
@@ -123,14 +108,14 @@ if __name__ == '__main__':
 
     # load fingerprint task into queue
     if args.nofingerprint:
-        task_queue.put(wptask.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
+        task_queue.put(wpworker.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
 
     # load plugin scan tasks into queue
     if args.pluginscan:
         plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
         logger.info("%s plugins will be tested", str(len(plugins_list)))
         for plugin in plugins_list:
-            task_queue.put(wptask.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
+            task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
 
     # load login check tasks into queue
     logger.debug("Loading wordlist...")
@@ -147,13 +132,13 @@ if __name__ == '__main__':
     logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
     for username in usernames:
         for password in wordlist:
-            task_queue.put(wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password))
+            task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password))
     del wordlist
 
     # start workers
     logger.info("Starting workers...")
     for i in range(config.threads):
-        t = WpbfWorker(task_queue)
+        t = wpworker.WpbfWorker(task_queue)
         t.start()
 
     # feedback to stdout
