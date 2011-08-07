@@ -29,40 +29,32 @@ class WpTaskStop(Exception):
         return 'Stop all tasks!'
 
 class WpTaskFingerprint(Wp, WpTask):
-    """Perform WordPress fingerprint and, is positive, log the results"""
+    """Perform WordPress fingerprint and. If positive, log the results"""
     def run(self):
         self.logger.info("WordPress version: %s", self.fingerprint())
 
 class WpTaskLogin(Wp, WpTask):
-    """Perform WordPress login. If login is positive, will return true or false otherwise.
-
-    Note that username and password must be set invoking setUsername and setPassword methods.
     """
-    _username = ""
-    _password = ""
+    Perform WordPress login. If login is positive, will log the username and password combination
 
-    def setUsername(self, username):
-        self._username = username
-
-    def setPassword(self, password):
-        self._password = password
-
+    username -- string representing a username
+    password -- string representing a password
+    """
     def run(self):
-        if self.login(self._username, self._password):
+        if self._keywords.has_key('username') and self._keywords.has_key('password') and self.login(self._keywords['username'], self._keywords['password']):
             # username and password found: log data and stop all tasks
-            self.logger.info("Password '%s' found for username '%s' on %s", self._password, self._username, self.get_login_url())
+            self.logger.info("Password '%s' found for username '%s' on %s", self._keywords['password'], self._keywords['username'], self.get_login_url())
             raise WpTaskStop
+            return True
+        return False
 
 class WpTaskPluginCheck(Wp, WpTask):
-    """Check if a plugin exists
-
-    Note that plugin name must be set invoking setPluginName method. TODO: Refactor this!
     """
-    _plugin = ""
+    Check if a plugin exists. If not 404 error is found and request is completed, the 
+    plugin name will be logged
 
-    def setPluginName(self, plugin):
-        self._plugin = plugin
-
+    name -- string representing the plugin name/directory
+    """
     def run(self):
-        if self.check_plugin(self._plugin):
-            self.logger.info("Plugin '%s' was found", self._plugin)
+        if self._keywords.has_key('name') and self.check_plugin(self._keywords['name']):
+            self.logger.info("Plugin '%s' was found", self._keywords['name'])

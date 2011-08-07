@@ -79,10 +79,10 @@ class Wp:
     _login_url = ''
     _proxy = None
     _version = None
-
+    _arguments = _keywords = []
     _cache = {}
 
-    def __init__(self, base_url, login_script_path="wp-login.php", proxy=None):
+    def __init__(self, base_url, login_script_path="wp-login.php", proxy=None, *arguments, **keywords):
         # Basic filters for the base url
         self._base_url = base_url
         if self._base_url[0:7] != 'http://':
@@ -93,6 +93,8 @@ class Wp:
         self._login_script_path = login_script_path.lstrip("/")
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
+        self._arguments = arguments
+        self._keywords = keywords
 
         self.logger = logging.getLogger("wpbf")
 

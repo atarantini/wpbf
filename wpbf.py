@@ -115,24 +115,22 @@ if __name__ == '__main__':
             logger.info("Check if proxy is well configured and running")
         sys.exit(0)
 
-    # load fingerprint task into queue
-    if args.nofingerprint:
-        task_queue.put(wptask.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
-
     # check for Login LockDown plugin
     logger.debug("Checking for Login LockDown plugin")
     if wp.check_loginlockdown():
         logger.warning("Login LockDown plugin is active, bruteforce will be useless")
         sys.exit(0)
 
+    # load fingerprint task into queue
+    if args.nofingerprint:
+        task_queue.put(wptask.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
+
     # load plugin scan tasks into queue
     if args.pluginscan:
         plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
         logger.info("%s plugins will be tested", str(len(plugins_list)))
         for plugin in plugins_list:
-            plugin_task = wptask.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy)
-            plugin_task.setPluginName(plugin)
-            task_queue.put(plugin_task)
+            task_queue.put(wptask.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
 
     # load wordlist into queue
     wordlist = [config.username]    # add username to the wordlist
@@ -153,10 +151,7 @@ if __name__ == '__main__':
     [wordlist.append(u) for u in usernames]
     for username in usernames:
         for password in wordlist:
-            login_task = wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy)
-            login_task.setUsername(username)
-            login_task.setPassword(password)
-            task_queue.put(login_task)
+            task_queue.put(wptask.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password))
     del wordlist
 
     # start workers
