@@ -142,7 +142,6 @@ class Wp:
 
         if cache and data and len(params) is 0:
             self._cache[url] = response_data
-            pass
 
         if data:
             return response_data

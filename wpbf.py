@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging, logging.config
 import urllib2, urlparse
-import sys, Queue, time, argparse
+import sys, threading, Queue, time, argparse
 
 import config, wplib, wpworker
 
@@ -40,24 +40,16 @@ if __name__ == '__main__':
     parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
     args = parser.parse_args()
     config.wp_base_url = args.url
+    config.wordlist = args.wordlist
+    config.username = args.username
+    config.script_path = args.scriptpath
+    config.threads = args.threads
+    config.proxy = args.proxy
+    config.eu_gap_tolerance = args.enumeratetolerance
     if args.test:
         import doctest
         doctest.testmod(wplib)
         exit(0)
-    if args.wordlist:
-        config.wordlist = args.wordlist
-    if args.username:
-        config.username = args.username
-    if args.enumeratetolerance:
-        config.eu_gap_tolerance = args.enumeratetolerance
-    if args.scriptpath:
-        config.script_path = args.scriptpath
-    if args.threads:
-        config.threads = args.threads
-    if args.proxy:
-        config.proxy = args.proxy
-    else:
-        proxy = None
 
     # logger configuration
     logging.config.fileConfig("logging.conf")
@@ -132,7 +124,7 @@ if __name__ == '__main__':
     logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
     for username in usernames:
         for password in wordlist:
-            task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password))
+            task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password, task_queue=task_queue))
     del wordlist
 
     # start workers
