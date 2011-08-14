@@ -261,8 +261,6 @@ class Wp:
                 username_title = self.get_user_from_title(data)
                 if username_title and username_title not in usernames:
                     usernames.append(username_title)
-                    if username_title.lower() not in usernames:
-                        usernames.append(username_title.lower())
                     gaps = 0
 
                 # Check for author in content

@@ -76,8 +76,7 @@ if __name__ == '__main__':
             if args.enumerateusers:
                 exit(0)
         else:
-            logger.error("Can't find username :(")
-            exit(0)
+            logger.error("Can't find usernames :(")
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
         exit(0)
@@ -146,7 +145,7 @@ if __name__ == '__main__':
                 wps = delta_time / delta_queue
             except ZeroDivisionError:
                 wps = 0.6
-            print str(current_queue)+" tasks left / "+str(round(1 / wps, 2))+" tasks per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
+            print str(current_queue)+" tasks left / "+str(round(1 / wps, 2))+" tasks per second / "+str( round(wps*current_queue / 60, 2) )+"min left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
             task_queue.queue.clear()
