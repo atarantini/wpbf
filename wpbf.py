@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('url', type=str,  help='base URL where WordPress is installed')
     parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (default: "+config.wordlist+")")
     parser.add_argument('-nk', '--nokeywords', action="store_false", help="Don't search keywords in content and add them to the wordlist")
-    parser.add_argument('-u', '--username', default=config.username, help="username (default: "+config.username+")")
+    parser.add_argument('-u', '--username', default=config.username, help="username (default: "+str(config.username)+")")
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (default: "+config.script_path+")")
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (default: "+str(config.threads)+")")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
@@ -60,42 +60,40 @@ if __name__ == '__main__':
 
     logger.info("Target URL: %s", wp.get_base_url())
 
-    # enumerate usernames
-    if args.enumerateusers:
-        logger.info("Enumerating users...")
-        logger.info("Usernames: %s", ", ".join(wp.enumerate_usernames(config.eu_gap_tolerance)))
-        exit(0)
-
-    # queue
-    task_queue = Queue.Queue()
-
     # check URL and username
     logger.info("Checking URL & username...")
-    usernames = [config.username]
+    usernames = []
+    if config.username:
+        usernames.append(config.username)
+
     try:
-        if wp.check_username(config.username) is False:
-            logger.warning("Possible non existent username: %s", config.username)
+        if len(usernames) is 0 or wp.check_username(usernames.pop()) is False:
             logger.info("Enumerating users...")
             usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
             if len(usernames) > 0:
                 logger.info("Usernames: %s", ", ".join(usernames))
             else:
                 logger.error("Can't find username :(")
-                sys.exit(0)
+                exit(0)
+            if args.enumerateusers:
+                exit(0)
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
-        sys.exit(0)
+        exit(0)
     except urllib2.URLError:
         logger.error("URL Error on: %s", wp.get_login_url())
         if config.proxy:
             logger.info("Check if proxy is well configured and running")
-        sys.exit(0)
+        exit(0)
 
     # check for Login LockDown plugin
     logger.debug("Checking for Login LockDown plugin")
     if wp.check_loginlockdown():
         logger.warning("Login LockDown plugin is active, bruteforce will be useless")
-        sys.exit(0)
+        exit(0)
+
+    # tasks queue
+    task_queue = Queue.Queue()
 
     # load fingerprint task into queue
     if args.nofingerprint:

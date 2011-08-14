@@ -26,7 +26,7 @@ threads = 5
 proxy = None
 
 # users
-username = "admin"
+username = None
 eu_gap_tolerance = 3
 
 # keywords
