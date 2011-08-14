@@ -58,7 +58,6 @@ if __name__ == '__main__':
     # Wp perform actions over a BlogPress blog
     wp = wplib.Wp(config.wp_base_url, config.script_path, config.proxy)
 
-    # build target url
     logger.info("Target URL: %s", wp.get_base_url())
 
     # enumerate usernames
@@ -108,6 +107,7 @@ if __name__ == '__main__':
         logger.info("%s plugins will be tested", str(len(plugins_list)))
         for plugin in plugins_list:
             task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
+        del plugins_list
 
     # load login check tasks into queue
     logger.debug("Loading wordlist...")
