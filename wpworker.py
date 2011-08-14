@@ -44,6 +44,9 @@ class WpTask():
     def run(self):
         pass
 
+    def stop_all_tasks(self):
+        raise WpTaskStop
+
     def requeue(self):
         """Requeue a task"""
         if self._requeue and self._keywords.has_key('task_queue'):
@@ -54,7 +57,7 @@ class WpTask():
         return False
 
 class WpTaskStop(Exception):
-    """Stop all tasks"""
+    """Clear tasks queue"""
     def __str__(self):
         return 'Stop all tasks!'
 
@@ -74,7 +77,7 @@ class WpTaskLogin(Wp, WpTask):
         if self._keywords.has_key('username') and self._keywords.has_key('password') and self.login(self._keywords['username'], self._keywords['password']):
             # username and password found: log data and stop all tasks
             self.logger.info("Password '%s' found for username '%s' on %s", self._keywords['password'], self._keywords['username'], self.get_login_url())
-            raise WpTaskStop
+            self.stop_all_tasks()
 
 class WpTaskPluginCheck(Wp, WpTask):
     """
