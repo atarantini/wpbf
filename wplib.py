@@ -335,7 +335,7 @@ class Wp:
         proxy -- URL for a HTTP Proxy
         """
         data = self.request(self._login_url, cache=True)
-        if "lockdown" in data.lower():
+        if data and "lockdown" in data.lower():
             return True
         else:
             return False
