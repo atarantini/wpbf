@@ -79,10 +79,10 @@ class Wp:
     _login_url = ''
     _proxy = None
     _version = None
-
+    _arguments = _keywords = []
     _cache = {}
 
-    def __init__(self, base_url, login_script_path="wp-login.php", proxy=None):
+    def __init__(self, base_url, login_script_path="wp-login.php", proxy=None, *arguments, **keywords):
         # Basic filters for the base url
         self._base_url = base_url
         if self._base_url[0:7] != 'http://':
@@ -93,6 +93,8 @@ class Wp:
         self._login_script_path = login_script_path.lstrip("/")
         self._proxy = proxy
         self._login_url = urllib.basejoin(self._base_url, self._login_script_path)
+        self._arguments = arguments
+        self._keywords = keywords
 
         self.logger = logging.getLogger("wpbf")
 
@@ -112,14 +114,15 @@ class Wp:
 
     # General methods
 
-    def request(self, url, params, cache=False):
+    def request(self, url, params=[], cache=False, data=True):
         """Request an URL with a given parameters and proxy
 
         url    -- URL to request
         params -- dictionary with POST variables
         cache  -- True if you want request to be cached and get a cached version of the request
+        data   -- If false, return request object, else return data. Cached data must be retrived with data=True
         """
-        if cache and self._cache.has_key(url) and len(params) is 0:
+        if cache and data and self._cache.has_key(url) and len(params) is 0:
             self.logger.debug("Cached %s %s", url, params)
             return self._cache[url]
 
@@ -131,10 +134,17 @@ class Wp:
         else:
             opener = urllib2.build_opener()
         self.logger.debug("Requesting %s %s", url, params)
-        response = opener.open(request, urllib.urlencode(params)).read()
+        try:
+            response = opener.open(request, urllib.urlencode(params))
+            response_data = response.read()
+        except urllib2.HTTPError:
+            return False
 
-        if cache and len(params) is 0:
-            self._cache[url] = response
+        if cache and data and len(params) is 0:
+            self._cache[url] = response_data
+
+        if data:
+            return response_data
 
         return response
 
@@ -148,10 +158,11 @@ class Wp:
         password -- Password for the supplied username
         """
         data = self.request(self._login_url, [('log', username), ('pwd', password)])
-        if "ERROR" in data or "Error" in data or "login_error" in data:
-            return False
-        else:
+        if data:
+            if "ERROR" in data or "Error" in data or "login_error" in data or "incorrect" in data.lower():
+                return False
             return True
+        return False
 
     def check_username(self, username):
         """Try to login into WordPress and check in the returned data contains username errors
@@ -159,24 +170,22 @@ class Wp:
         username -- Wordpress username
         """
         data = self.request(self._login_url, [('log', username), ('pwd', str(randint(1, 9999999)))])
-        if "ERROR" in data or "Error" in data or "login_error" in data:
-            if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
-                return False
-            else:
+        if data:
+            if "ERROR" in data or "Error" in data or "login_error" in data:
+                if "usuario es incorrecto" in data or 'usuario no' in data or "Invalid username" in data:
+                    return False
                 return True
-        else:
-            return True
+        return False
 
     def find_username(self, url=False):
         """Try to find a suitable username searching for common strings used in templates that refers to authors of blog posts
 
         url   -- Any URL in the blog that can contain author references
-        proxy -- URL of a HTTP proxy
         """
         if url:
-            data =  self.request(url, [], True)
+            data =  self.request(url, cache=True)
         else:
-            data =  self.request(self._base_url, [], True)
+            data =  self.request(self._base_url, cache=True)
         username = None
 
         match = re.search('/author/(.*?)/feed', data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
@@ -296,7 +305,7 @@ class Wp:
         min_frequency   -- Filter keywords number of times than a keyword appears within the content
         ignore_with     -- Ignore words that contains any characters in this list
         """
-        data =  self.request(self._base_url, [], True)
+        data =  self.request(self._base_url, cache=True)
         keywords = []
 
         # get keywords from title
@@ -325,8 +334,20 @@ class Wp:
         url   -- Login form URL
         proxy -- URL for a HTTP Proxy
         """
-        data = self.request(self._login_url, [], True)
-        if "lockdown" in data.lower():
+        data = self.request(self._login_url, cache=True)
+        if data and "lockdown" in data.lower():
+            return True
+        else:
+            return False
+
+    def check_plugin(self, plugin):
+        """Try to fetch WordPress version from "generator" meta tag in main page
+
+        return - WordPress version or false if not found
+        """
+        url = self._base_url+"wp-content/plugins/"+plugin
+        data = self.request(url)
+        if data is not False:
             return True
         else:
             return False
@@ -334,9 +355,9 @@ class Wp:
     def fingerprint(self):
         """Try to fetch WordPress version from "generator" meta tag in main page
 
-        return - WordPress version or false if now found
+        return - WordPress version or false if not found
         """
-        data = self.request(self._base_url, [], True)
+        data = self.request(self._base_url, cache=True)
         m = re.search('<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />', data)
         if m:
             self._version = m.group(1)
