@@ -59,7 +59,7 @@ Usage:
 
     optional arguments:
       -w WORDLIST, --wordlist WORDLIST		        Worldlist file (default: wordlist.txt)
-      -u USERNAME, --username USERNAME		        Username (defaul: admin)
+      -u USERNAME, --username USERNAME		        Username (default: enumerate users)
       -s SCRIPTPATH, --scriptpath SCRIPTPATH	        Relative path to the login form (default: wp-login.php)
       -t THREADS, --threads THREADS		        How many threads the script will spawn (default: 5)
       -p PROXY, --proxy PROXY			        HTTP proxy (ex: http://localhost:8008/)
