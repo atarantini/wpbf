@@ -2,19 +2,21 @@
 *   wpbf!   *
 * * * * * * *
 
-wpbf is a bruteforce tool to remotely test password strength of WordPress bloging software.
+wpbf is a bruteforce tool to remotely test password strength, username enumeration and plugin detection on a WordPress site.
 
 
 Description:
 
-    The script will try, for a given username, to login into the WordPress dashboard through the
-    login form using a wordlist for passwords. If the given username is incorrect, it will try to
-    find a correct one. When the script success login in, the matched username and password is logged
-    and shown on the screen.
+    The script will try to login into the WordPress dashboard through the login form using a mixture of
+    enumerated usernames, a wordlist and relevant keywords from the blog's content. If a single username is
+    given, the script will not search for additional usernames.
+
+    When a correct username/passwords matchs, it will be logged and show on the standard output.
 
     For faster results you can spawn threads but BE CAREFULL not to flood/DoS the site. Default
-    settings can be changed in "config.py" and "logging.conf" files. The wordlist must have one entry per
-    line, a small wordlist is provided for testing purposes.
+    settings can be changed in "config.py" and "logging.conf" files.
+
+    The wordlist must have one entry per line, a small wordlist (wordlist.txt) and plugin list (plugins.txt) are provided for testing purposes.
 
 
 Disclamer:
@@ -38,7 +40,8 @@ Features:
     * Threads
     * Use keywords from blog's content in the wordlist
     * HTTP Proxy Support
-    * Basic WordPress Fingerprint
+    * Basic WordPress fingerprint
+    * Basic plugins fingerprint
     * Detection of Login LockDown plugin
     * Advanced logging using Python's logging library and logging configuration file
 
@@ -64,22 +67,24 @@ Usage:
       -eu, --enumerateusers			        Only enumerate users
       -eut, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
       -nf, --nofingerprint                              Don't fingerprint WordPress
+      -pl, --pluginscan                                 Detect plugins in WordPress using a list of popular/vulnerable plug
       --test                                            Run python doctests (you can use a dummy URL here)
 
+    For extended help, run "./wpbf.py -h".
 
 Examples:
 
-    BASIC (it will use the default settings (you can change the default settings in config.py file)
+    BASIC - it will use the default settings (you can change the default settings in config.py file)
 
 	$ ./wpbf.py http://www.mysite.com/blog/
 
 
-    CUSTOM (using username 'john', not using keywords in the wordlist and trough a local proxy)
+    CUSTOM - using username 'john', not using keywords in the wordlist and trough a local proxy
 
 	$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/
 
 
-    AGGRESIVE (it will use default settings and spawn 23 threads)
+    AGGRESIVE - it will use default settings and spawn 23 threads
 
 	$ ./wpbf.py -t 23 http://www.mysite.com/blog/
 
