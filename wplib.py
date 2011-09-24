@@ -218,11 +218,9 @@ class Wp:
         """Enumerate usernames
 
         Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in
-        WordPress > 3.2-beta2.
+        WordPress > 3.2-beta2, if no redirect is done try to match username from title of the user's archive page or page content.
 
-        If not redirect is done try to match username from title of the user's archive page
-
-        gap_tolerance -- Tolerance for user ID gaps in the sequence (this gaps are present when users are deleted and new users created)
+        gap_tolerance -- Tolerance for user id gaps in the user id sequence (this gaps are present when users are deleted and new users created)
         """
         uid = 0
         usernames = []
@@ -269,7 +267,8 @@ class Wp:
                     usernames.append(username_content)
                     gaps = 0
 
-            except urllib2.HTTPError:
+            except urllib2.HTTPError, e:
+                self.logger.debug(e)
                 gaps += 1
 
             gaps += 1
