@@ -104,13 +104,15 @@
         <h4>Basic</h4>
         <p>In this example, wpbf will do a bruteforce test using the default settings (you can change the default settings in config.py). It will enumerate usernames, find keywords and use the static+generated wordlist to bruteforce each user</p>
         <pre>$ ./wpbf.py http://localhost/wordpress/
-    2011-06-18 19:11:41,461 - wpbf - INFO - Target URL: http://localhost/wordpress/wp-login.php
-    2011-06-18 19:11:41,463 - wpbf - INFO - Checking URL & username...
-    2011-06-18 19:11:43,781 - wpbf - INFO - WordPress version: 2.8.1
-    2011-06-18 19:11:45,073 - wpbf - INFO - Bruteforcing...
-    3 words left
-    2011-06-18 19:11:55,147 - wpbf - INFO - Done.
-    2011-06-18 19:11:56,641 - wpbf - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php
+2011-09-30 17:19:15,985 - wpbf - INFO - Target URL: http://localhost/wordpress/
+2011-09-30 17:19:16,034 - wpbf - INFO - Checking URL and username...
+2011-09-30 17:19:16,035 - wpbf - INFO - Enumerating users...
+2011-09-30 17:19:27,013 - wpbf - INFO - Usernames: admin
+2011-09-30 17:19:28,671 - wpbf - INFO - 41 passwords will be tested
+2011-09-30 17:19:28,680 - wpbf - INFO - Starting workers...
+2011-09-30 17:19:28,685 - wpbf - INFO - WordPress version: 3.0
+21 tasks left / 1.6 tasks per second / 0.22min left
+2011-09-30 17:19:46,798 - wpbf - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php
         </pre>
         <h4>Username enumeration</h4>
         <p>The '-eu' or '--enumerateusers' parameter will only do username enumeration and list the usernames found</p>
