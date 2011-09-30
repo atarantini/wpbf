@@ -58,9 +58,9 @@
     <div class="description">
       Remotely test password strength of WordPress bloging software
     </div>
-    <p>wpbf is a python script that helps you to remotely test and audit password strength of WordPress blogs. It currently supports threading, username detection/enumeration, logging and search content for keywords to increase password list.
+    <p><b>wpbf</b> is a python script that helps you to remotely test and audit password strength of WordPress blogs. It currently supports threading, username detection/enumeration, logging and search content for keywords to increase password list.
 <br /><br />
-wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwords used are weak and need to be changed.</p>
+<b>wpbf</b> will test quickly if your WordPress blog is hard to brutefoce or the passwords used are weak and need to be changed.</p>
     <h2>Features</h2>
     <p>
         <ul>
@@ -69,8 +69,8 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
             <li>HTTP Proxy Support</li>
             <li>Username enumeration/detection (TALSOFT-2011-0526 with fallback to author's archive page and content parsing)</li>
             <li>Fetch keywords from blog's content and use them in the wordlist</li>
-            <li>WordPress fingerprint</li>
-            <li>Detection of Login LockDown plugin</li>
+            <li>WordPress version fingerprint</li>
+            <li>Detection of known plugins (including Login LockDown, that will make the bruteforce usefull)</li>
             <li>Advanced logging (with it's own configuration file) using Python's logging library</li>
         </ul>
     </p>
@@ -87,14 +87,14 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
       <a href="http://github.com/atarantini/wpbf/tarball/master">tar</a> formats.
     </p>
     <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:G
+      by running:
       <pre>$ git clone git://github.com/atarantini/wpbf</pre>
     </p>
     <h2>Install</h2>
     <p>Uncompress the downloaded file into any directory, and execute it using ./wpbf</p>
     <p>For full documentation see <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
     <h2>Documentation and License</h2>
-    <p><strong>Full documentation and usage in the </strong> <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
+    <p><strong>Full documentation and usage in the </strong> <a href="https://github.com/atarantini/wpbf/">README file on GitHub repository</a></p>
     <p><strong>Repository of </strong><a href="https://github.com/atarantini/wpbf/">wpbf in gitHub</a></p>
     <p><strong>Dependencies</strong> Python 2.6+</p>
     <p><strong>License</strong> GPLv3</p>
@@ -102,7 +102,7 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
     <h2>Usage</h2>
     <p>
         <h4>Basic</h4>
-        <p>In this example, wpbf will do a bruteforce test using the default settings. You can change the default settings in config.py, if the default username (admin) is invalid the script will try to enumerate users and use one.</p>
+        <p>In this example, wpbf will do a bruteforce test using the default settings (you can change the default settings in config.py). It will enumerate usernames, find keywords and use the static+generated wordlist to bruteforce each user</p>
         <pre>$ ./wpbf.py http://localhost/wordpress/
     2011-06-18 19:11:41,461 - wpbf - INFO - Target URL: http://localhost/wordpress/wp-login.php
     2011-06-18 19:11:41,463 - wpbf - INFO - Checking URL & username...
@@ -113,7 +113,7 @@ wpbf will test quickly if your WordPress blog is hard to brutefoce or the passwo
     2011-06-18 19:11:56,641 - wpbf - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php
         </pre>
         <h4>Username enumeration</h4>
-        <p>The '-eu' or '--enumerateusers' parameter will only launch username enumeration and list the users found</p>
+        <p>The '-eu' or '--enumerateusers' parameter will only do username enumeration and list the usernames found</p>
         <pre>$ ./wpbf.py -eu http://www.mysite.com/blog/</pre>
         <h4>Aggresive</h4>
         <p>You can spawn more threads to speed up the bruteforce process. Be aware that using a lot of threads can cause hangs in the server or denial of service. For this example we will spawn 23 threads:</p>
