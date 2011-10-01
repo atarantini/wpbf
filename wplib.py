@@ -190,7 +190,7 @@ class Wp:
 
         match = re.search('/author/(.*?)/feed', data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
         if match:
-            username = match.group()[8:-5]
+            username = match.group(1)
 
         if username is None:
             match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
@@ -200,7 +200,7 @@ class Wp:
         if username is None:
             match = re.search('View all posts by (.*)"', data, re.IGNORECASE)       # search "View all posts by {AUTHOR}"
             if match:
-                username = match.group()[18:-1]
+                username = match.group(1)
 
         if username is None:
             match = re.search('<a href="'+self._base_url+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
@@ -211,7 +211,7 @@ class Wp:
             return False
         else:
             username = username.strip().replace("/","")
-            self.logger.debug("Possible username %s (from content)", username)
+            self.logger.debug("Possible username %s (by content)", username)
             return username
 
     def enumerate_usernames(self, gap_tolerance=0):
@@ -308,10 +308,10 @@ class Wp:
         keywords = []
 
         # get keywords from title
-        title = re.search('<title>.*</title>', data, re.IGNORECASE)
+        title = re.search('<title>(.*)</title>', data, re.IGNORECASE)
         if title:
-            title = title.group()
-            [keywords.insert(0, kw.lower()) for kw in title[7:-8].split(" ")][:-1]
+            title = title.group(1)
+            [keywords.insert(0, kw.lower()) for kw in title.split(" ")][:-1]
 
         # get keywords from url content
         [keywords.append(k.strip()) for k in get_keywords(re.sub("<.*?>", "", data), min_keyword_len, min_frequency)]
