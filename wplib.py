@@ -188,31 +188,26 @@ class Wp:
             data =  self.request(self._base_url, cache=True)
         username = None
 
-        match = re.search('/author/(.*?)/feed', data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
-        if match:
-            username = match.group(1)
+        regexps = [
+            '/author/(.*)"',
+            '/author/(.*?)/feed',
+            '(<!-- by (.*?) -->)',
+            'View all posts by (.*)"',
+        ]
 
-        if username is None:
-            match = re.search('(<!-- by (.*?) -->)', data, re.IGNORECASE)       # search "<!-- by {AUTHOR} -->"
-            if match:
-                username = match.group()[8:-4]
-
-        if username is None:
-            match = re.search('View all posts by (.*)"', data, re.IGNORECASE)       # search "View all posts by {AUTHOR}"
+        while username is None and len(regexps):
+            regexp = regexps.pop()
+            match = re.search(regexp, data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
             if match:
                 username = match.group(1)
+                # self.logger.debug("regexp %regexp marched %s", regexp, username) # uncoment to debug regexps
 
-        if username is None:
-            match = re.search('<a href="'+self._base_url+'author/(.*)" ', data, re.IGNORECASE)	    # search "author/{AUTHOR}
-            if match:
-                username = match.group()[len(self._base_url)+16:-2]
-
-        if username is None or len(username) < 1:
-            return False
-        else:
+        if username:
             username = username.strip().replace("/","")
             self.logger.debug("Possible username %s (by content)", username)
             return username
+        else:
+            return False
 
     def enumerate_usernames(self, gap_tolerance=0):
         """Enumerate usernames
