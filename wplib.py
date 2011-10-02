@@ -364,7 +364,22 @@ class Wp:
             self.logger.debug("Possible plugins %s present", plugins)
             return plugins
         else:
-            return False
+            return []
+
+    def find_server_path(self):
+        path = False
+        urls = ['wp-settings.php', 'wp-content/plugins/akismet/akismet.php', 'wp-content/plugins/hello.php']
+
+        for url in urls:
+            response = self.request(self._base_url+url)
+            if response and 'Fatal error' in response:
+                if url in response:
+                    match = ' <b>(.*)'+url+'</b>'
+                    path_disclosure = re.search(match, response, re.IGNORECASE)
+                    if path_disclosure:
+                        return path_disclosure.group(1)
+
+        return False
 
     def fingerprint(self):
         """Try to fetch WordPress version from "generator" meta tag in main page

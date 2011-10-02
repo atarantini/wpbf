@@ -90,14 +90,14 @@ if __name__ == '__main__':
     # tasks queue
     task_queue = Queue.Queue()
 
-    # load fingerprint task into queue
+    # load fingerprint tasks into queue
     if args.nofingerprint:
         task_queue.put(wpworker.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
 
     # load plugin scan tasks into queue
     if args.pluginscan:
         plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
-        [plugins_list.append(plugin) for plugin in wp.find_plugins()]
+        [plugins_list.append(plugin) for plugin in wp.find_plugins() if plugin]
         logger.info("%s plugins will be tested", str(len(plugins_list)))
         for plugin in plugins_list:
             task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))

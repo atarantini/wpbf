@@ -65,6 +65,9 @@ class WpTaskFingerprint(Wp, WpTask):
     """Perform WordPress fingerprint and. If positive, log the results"""
     def run(self):
         self.logger.info("WordPress version: %s", self.fingerprint())
+        server_path = self.find_server_path()
+        if server_path:
+            self.logger.info("WordPress path in server: %s", self.find_server_path())
 
 class WpTaskLogin(Wp, WpTask):
     """
