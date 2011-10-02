@@ -193,7 +193,7 @@ class Wp:
             '/author/(.*?)/feed',
             'entries of (.*)"',
             'by (.*) Feed"',
-            '(<!-- by (.*?) -->)',
+            '<!-- by (.*) -->',
             'View all posts by (.*)"',
         ]
 
