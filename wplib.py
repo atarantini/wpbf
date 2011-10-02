@@ -348,6 +348,14 @@ class Wp:
         else:
             return False
 
+    def check_plugin_documentation(self, plugin):
+        url = self._base_url+"wp-content/plugins/"+plugin+"/readme.txt"
+        response = self.request(url)
+        if response:
+            return url
+        else:
+            return False
+
     def find_plugins(self, url=False):
         """Try to find plugin names from content
 
@@ -358,13 +366,13 @@ class Wp:
         else:
             data =  self.request(self._base_url, cache=True)
 
-        plugins = re.findall(r"wp-content/plugins/(.*)/.*\.*\?.*[\'|\"]\w", data, re.IGNORECASE)
+        if data:
+            plugins = re.findall(r"wp-content/plugins/(.*)/.*\.*\?.*[\'|\"]\w", data, re.IGNORECASE)
+            if len(plugins):
+                self.logger.debug("Possible plugins %s present", plugins)
+                return plugins
 
-        if len(plugins):
-            self.logger.debug("Possible plugins %s present", plugins)
-            return plugins
-        else:
-            return []
+        return []
 
     def find_server_path(self):
         path = False
