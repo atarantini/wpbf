@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     logger.info("Target URL: %s", wp.get_base_url())
 
-    # check URL and username
+    # check URL and user (if user not set, enumerate usernames)
     logger.info("Checking URL & username...")
     usernames = []
     if config.username:
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     # load plugin scan tasks into queue
     if args.pluginscan:
         plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
+        [plugins_list.append(plugin) for plugin in wp.find_plugins()]
         logger.info("%s plugins will be tested", str(len(plugins_list)))
         for plugin in plugins_list:
             task_queue.put(wpworker.WpTaskPluginCheck(config.wp_base_url, config.script_path, config.proxy, name=plugin))

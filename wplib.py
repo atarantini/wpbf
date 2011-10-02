@@ -191,16 +191,18 @@ class Wp:
         regexps = [
             '/author/(.*)"',
             '/author/(.*?)/feed',
+            'entries of (.*)"',
+            'by (.*) Feed"',
             '(<!-- by (.*?) -->)',
             'View all posts by (.*)"',
         ]
 
         while username is None and len(regexps):
             regexp = regexps.pop()
-            match = re.search(regexp, data, re.IGNORECASE)       # search "<a href="http://myblog.com/author/{USERNAME}/feed"
+            match = re.search(regexp, data, re.IGNORECASE)
             if match:
                 username = match.group(1)
-                # self.logger.debug("regexp %regexp marched %s", regexp, username) # uncoment to debug regexps
+                # self.logger.debug("regexp %s marched %s", regexp, username) # uncoment to debug regexps
 
         if username:
             username = username.strip().replace("/","")
@@ -343,6 +345,24 @@ class Wp:
         data = self.request(url)
         if data is not False:
             return True
+        else:
+            return False
+
+    def find_plugins(self, url=False):
+        """Try to find plugin names from content
+
+        url   -- Any URL in the blog that can contain plugin paths
+        """
+        if url:
+            data =  self.request(url, cache=True)
+        else:
+            data =  self.request(self._base_url, cache=True)
+
+        plugins = re.findall(r"wp-content/plugins/(.*)/.*\.*\?.*[\'|\"]\w", data, re.IGNORECASE)
+
+        if len(plugins):
+            self.logger.debug("Possible plugins %s present", plugins)
+            return plugins
         else:
             return False
 
