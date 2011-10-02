@@ -92,6 +92,10 @@ class WpTaskPluginCheck(Wp, WpTask):
     def run(self):
         if self._keywords.has_key('name') and self.check_plugin(self._keywords['name']):
             self.logger.info("Plugin '%s' was found", self._keywords['name'])
-            plugin_doc = self.check_plugin_documentation(self._keywords['name'])
-            if plugin_doc:
-                self.logger.info("Additional plugin documentation for '%s' can be found at %s", self._keywords['name'], plugin_doc)
+            plugin_doc_url = self.check_plugin_documentation(self._keywords['name'])
+            if plugin_doc_url:
+                plugin_version = self.find_plugin_version(plugin_doc_url)
+                if plugin_version is not False:
+                    self.logger.info("Plugin '%s' version: %s (more info @ %s)", self._keywords['name'], plugin_version, plugin_doc_url)
+                else:
+                    self.logger.info("Additional plugin documentation for '%s' can be found @ %s", self._keywords['name'], plugin_doc_url)

@@ -374,6 +374,13 @@ class Wp:
 
         return []
 
+    def find_plugin_version(self, url):
+        response = self.request(url, cache=True)
+        if response:
+            version = re.search(r"Stable tag:(.*)", response, re.IGNORECASE)
+            if version:
+                return version.group(1).strip()
+
     def find_server_path(self):
         path = False
         urls = ['wp-settings.php', 'wp-content/plugins/akismet/akismet.php', 'wp-content/plugins/hello.php']
