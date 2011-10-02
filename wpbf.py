@@ -36,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
     parser.add_argument('-eut', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
-    parser.add_argument('-pl', '--pluginscan', action="store_true", help="Detect plugins in WordPress using a list of popular/vulnerable plugins")
+    parser.add_argument('-nps', '--nopluginscan', action="store_false", help="Skip plugin bruteforce, enumeration and fingerprint")
     parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
     args = parser.parse_args()
     config.wp_base_url = args.url
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         task_queue.put(wpworker.WpTaskFingerprint(config.wp_base_url, config.script_path, config.proxy))
 
     # load plugin scan tasks into queue
-    if args.pluginscan:
+    if args.nopluginscan:
         plugins_list = [plugin.strip() for plugin in open(config.plugins_list, "r").readlines()]
         [plugins_list.append(plugin) for plugin in wp.find_plugins() if plugin]
         logger.info("%s plugins will be tested", str(len(plugins_list)))

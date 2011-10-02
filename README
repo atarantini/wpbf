@@ -40,9 +40,9 @@ Features:
     * Threads
     * Use keywords from blog's content in the wordlist
     * HTTP Proxy Support
-    * Basic WordPress fingerprint
-    * Basic plugins fingerprint
-    * Detection of Login LockDown plugin
+    * Basic WordPress fingerprint (version and full path)
+    * Advance plugins fingerprint (bruteforce, discovery and version/documentation)
+    * Detection of Login LockDown plugin (this plugin makes the bruteforce useless)
     * Advanced logging using Python's logging library and logging configuration file
 
 
@@ -63,11 +63,14 @@ Usage:
       -s SCRIPTPATH, --scriptpath SCRIPTPATH	        Relative path to the login form (default: wp-login.php)
       -t THREADS, --threads THREADS		        How many threads the script will spawn (default: 5)
       -p PROXY, --proxy PROXY			        HTTP proxy (ex: http://localhost:8008/)
-      -nk, --nokeywords				        Don't search for keywords in content for the wordlist
+
       -eu, --enumerateusers			        Only enumerate users
       -eut, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
-      -nf, --nofingerprint                              Don't fingerprint WordPress
-      -pl, --pluginscan                                 Detect plugins in WordPress using a list of popular/vulnerable plug
+
+      -nk, --nokeywords                                 Skip search for keywords in content for the wordlist
+      -nf, --nofingerprint                              Skip WordPress fingerprint (version/full path)
+      -nps, --nopluginscan                              Skip plugins bruteforce, discovery and fingerprint
+
       --test                                            Run python doctests (you can use a dummy URL here)
 
     For extended help, run "./wpbf.py -h".
