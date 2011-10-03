@@ -211,7 +211,7 @@ class Wp:
         else:
             return False
 
-    def enumerate_usernames(self, gap_tolerance=0):
+    def enumerate_usernames(self, gap_tolerance=0, max_users=False):
         """Enumerate usernames
 
         Enumerate usernames using TALSOFT-2011-0526 advisory (http://seclists.org/fulldisclosure/2011/May/493) present in
@@ -263,6 +263,9 @@ class Wp:
                 if username_content and username_content not in usernames:
                     usernames.append(username_content)
                     gaps = 0
+
+                if max_users and len(usernames) >= max_users:
+                    break
 
             except urllib2.HTTPError, e:
                 self.logger.debug(e)

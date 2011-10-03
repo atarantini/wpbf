@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--proxy', default=None, help="http proxy (ex: http://localhost:8008/)")
     parser.add_argument('-nf', '--nofingerprint', action="store_false", help="Don't fingerprint WordPress")
     parser.add_argument('-eu', '--enumerateusers', action="store_true", help="Only enumerate users (withouth bruteforcing)")
+    parser.add_argument('-mu', '--maxusers', type=int, default=False, help="Maximum number of usernames to enumerate (default: no limit)")
     parser.add_argument('-eut', '--enumeratetolerance', type=int, default=config.eu_gap_tolerance, help="User ID gap tolerance to use in username enumeration (default: "+str(config.eu_gap_tolerance)+")")
     parser.add_argument('-nps', '--nopluginscan', action="store_false", help="Skip plugin bruteforce, enumeration and fingerprint")
     parser.add_argument('--test', action="store_true", help="Run python doctests (you can use a dummy URL here)")
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     config.threads = args.threads
     config.proxy = args.proxy
     config.eu_gap_tolerance = args.enumeratetolerance
+    config.max_users = args.maxusers
     if args.test:
         import doctest
         doctest.testmod(wplib)
@@ -69,7 +71,7 @@ if __name__ == '__main__':
     try:
         if len(usernames) < 1 or wp.check_username(usernames[0]) is False:
             logger.info("Enumerating users...")
-            usernames = wp.enumerate_usernames(config.eu_gap_tolerance)
+            usernames = wp.enumerate_usernames(config.eu_gap_tolerance, config.max_users)
 
         if len(usernames) > 0:
             logger.info("Usernames: %s", ", ".join(usernames))
