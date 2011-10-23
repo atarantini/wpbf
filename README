@@ -70,6 +70,7 @@ Usage:
       -nk, --nokeywords                                 Skip search for keywords in content for the wordlist
       -nf, --nofingerprint                              Skip WordPress fingerprint (version/full path)
       -nps, --nopluginscan                              Skip plugins bruteforce, discovery and fingerprint
+      -ds, --dontstop                                   Don't stop when password is found, continue with all pending tasks
 
       --test                                            Run python doctests (you can use a dummy URL here)
 
