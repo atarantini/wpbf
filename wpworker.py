@@ -80,7 +80,8 @@ class WpTaskLogin(Wp, WpTask):
         if self._keywords.has_key('username') and self._keywords.has_key('password') and self.login(self._keywords['username'], self._keywords['password']):
             # username and password found: log data and stop all tasks
             self.logger.info("Password '%s' found for username '%s' on %s", self._keywords['password'], self._keywords['username'], self.get_login_url())
-            self.stop_all_tasks()
+            if self._keywords.has_key('dontstop') and self._keywords['dontstop'] is False:
+                self.stop_all_tasks()
 
 class WpTaskPluginCheck(Wp, WpTask):
     """
