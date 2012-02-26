@@ -4,39 +4,38 @@
   <meta charset='utf-8'>
     <meta name="keywords" content="wpbf, wordpress, word, press, bruteforce, brute force, blog, username, enumeration, pentest" />
   <title>wpbf - WordPress Brute Force @ GitHub</title>
+  <link href='http://fonts.googleapis.com/css?family=Frijole' rel='stylesheet' type='text/css'>
   <style type="text/css">
     body {
-      background-color: #E5C24E;
+      background-color: #F6D35F;
       margin: 0;
       font-family: Helvetica, Arial, FreeSans, san-serif;
       color: #5F4236;
+	  border-top: 20px solid #5F4236;
+	  border-bottom: 20px solid #5F4236;
     }
-    #container {
+    .wrap {
       margin: 0 auto;
-      width: 903px;
+      width: 90%;
     }
-    h1 {
-        font-size: 3.5em;
-        color: #28150b;
-        background: #6A4A3C;
-        padding: 20px;
-        margin:0;
-        box-shadow: 1px 1px 15px 5px #6a4a3c;
-    }
-    h1 .small { font-size: 0.3em; margin-left: 20px; }
+    .header { color: #28150b; margin: 10px auto; opacity: 0.9; }
+	.header .logo {
+		font-family: "Frijole";
+		font-size: 5.5em;
+		margin-top: 10px;
+	}
+	.header a.logo { text-decoration: none; }
     h1 a { text-decoration: none }
     h1 .small a { text-decoration: none; color: #fefefe; }
-    h2 { font-size: 1.5em; color: #007782; letter-spacing: 3px; }
+    h2 { margin-top: 50px; font-size: 1.8em; color: #006671; letter-spacing: 3px; }
     h3 { text-align: center; color: #CC333F; }
     h4 { margin-bottom: 0; }
     a { color: #CC333F; }
-    .description { font-size: 1.2em; color: #222222; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #6A4A3C; color: #EB6841; padding: 15px;
-        box-shadow: 1px 1px 10px 2px #444;
-        border-radius: 7px;
-}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+	li { margin: 9px 0; }
+	.hr {
+        box-shadow: 1px 1px 10px 1px #6a4a3c;
+	}
+    .box { font-size: 1.2em; color: #222222; padding: 10px 20px; font-style: italic; background: #e5c24e; }
     .footer { text-align:center; padding-top:30px; font-style: italic; }
   </style>
     <script type="text/javascript">
@@ -53,50 +52,46 @@
 </head>
 <body>
   <a href="http://github.com/atarantini/wpbf"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-  <h1><a href="http://github.com/atarantini/wpbf"></a>wpbf - WordPress BruteForce<div class="small">by <a href="http://github.com/atarantini">atarantini</a></div></h1>
-  <div id="container">
-    <div class="description">
-      Remotely test password strength of WordPress bloging software
+  <div class="header wrap">
+	  <a class="logo" href="http://github.com/atarantini/wpbf">wpbf</a>
+  </div>
+  <div class="wrap">
+    <div class="box">
+	<p><b style="font-style:normal;">wpbf</b> will test if your WordPress blog is hard to brutefoce or the passwords used are weak and need to be changed. Easy and quick, it let's you remotely audit your WordPress blogs and provide information about weak passwords, usernames and plugins.</p>
     </div>
-    <p><b>wpbf</b> is a python script that helps you to remotely test and audit password strength of WordPress blogs. It currently supports threading, username detection/enumeration, logging and search content for keywords to increase password list.
-<br /><br />
-<b>wpbf</b> will test quickly if your WordPress blog is hard to brutefoce or the passwords used are weak and need to be changed.</p>
     <h2>Features</h2>
     <p>
         <ul>
-            <li>Bruteforce using a dictionary file (a small one is provided)
-            <li>Threads</li>
+            <li>Bruteforce using a dictionary file (a small and effective one is provided)
+            <li>Threading for speed boost of the bruteforce tasks</li>
             <li>HTTP Proxy Support</li>
             <li>Username enumeration/detection (TALSOFT-2011-0526 with fallback to author's archive page and content parsing)</li>
-            <li>Fetch keywords from blog's content and use them in the wordlist</li>
+            <li>Fetching keywords from blog's content and use them in the password list</li>
             <li>WordPress version fingerprint</li>
-            <li>Detection of known plugins (including Login LockDown, that will make the bruteforce useless)</li>
+            <li>Detection of known and unknown plugins (including Login LockDown, that makes the bruteforce useless)</li>
+            <li>WordPress remote path detection</li>
             <li>Advanced logging (with it's own configuration file) using Python's logging library</li>
         </ul>
     </p>
     <h2>Download</h2>
-    <div class="download">
+    <p>
+      You can download this project in either
+      <a href="http://github.com/atarantini/wpbf/zipball/master">zip</a> or
+      <a href="http://github.com/atarantini/wpbf/tarball/master">tar</a> formats or clone the project from our GitHub repository by running:
+	<div style="float:right;">
       <a href="http://github.com/atarantini/wpbf/zipball/master">
         <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
       <a href="http://github.com/atarantini/wpbf/tarball/master">
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/atarantini/wpbf/zipball/master">zip</a> or
-      <a href="http://github.com/atarantini/wpbf/tarball/master">tar</a> formats.
+	</div>
     </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/atarantini/wpbf</pre>
-    </p>
+    <div class="box"><code>$ git clone git://github.com/atarantini/wpbf</code></div>
     <h2>Install</h2>
-    <p>Uncompress the downloaded file into any directory, and execute it using ./wpbf</p>
-    <p>For full documentation see <a href="https://github.com/atarantini/wpbf/">README in GitHub repository</a></p>
+    <p>The only dependency needed to run <strong>wpbf</strong> is Python 2.6+, that comes already installed with most serious OS. Uncompress the downloaded file into any directory, and execute it using ./wpbf:</p>
+	<div class="box"><code>$ ./wpbf</code></div>
     <h2>Documentation and License</h2>
     <p><strong>Full documentation and usage in the </strong> <a href="https://github.com/atarantini/wpbf/">README file on GitHub repository</a></p>
-    <p><strong>Repository of </strong><a href="https://github.com/atarantini/wpbf/">wpbf in gitHub</a></p>
-    <p><strong>Dependencies</strong> Python 2.6+</p>
+    <p><strong>Repository of </strong><a href="https://github.com/atarantini/wpbf/">wpbf in GitHub</a></p>
     <p><strong>License</strong> GPLv3</p>
     <p><strong>Author</strong> Andres Tarantini (atarantini@gmail.com)</p>
     <h2>Usage</h2>
