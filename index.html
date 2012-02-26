@@ -6,25 +6,7 @@
   <title>wpbf - WordPress Brute Force @ GitHub</title>
   <link href='http://fonts.googleapis.com/css?family=Frijole' rel='stylesheet' type='text/css'>
   <style type="text/css">
-    body {
-      background-color: #F6D35F;
-      margin: 0;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #5F4236;
-	  border-top: 20px solid #5F4236;
-	  border-bottom: 20px solid #5F4236;
-    }
-    .wrap {
-      margin: 0 auto;
-      width: 90%;
-    }
-    .header { color: #28150b; margin: 10px auto; opacity: 0.9; }
-	.header .logo {
-		font-family: "Frijole";
-		font-size: 5.5em;
-		margin-top: 10px;
-	}
-	.header a.logo { text-decoration: none; }
+    body { background-color: #F6D35F; margin: 0; font-family: Helvetica, Arial, FreeSans, san-serif; color: #5F4236; border-top: 20px solid #5F4236; border-bottom: 20px solid #5F4236; padding-bottom: 60px; }
     h1 a { text-decoration: none }
     h1 .small a { text-decoration: none; color: #fefefe; }
     h2 { margin-top: 50px; font-size: 1.8em; color: #006671; letter-spacing: 3px; }
@@ -32,11 +14,12 @@
     h4 { margin-bottom: 0; }
     a { color: #CC333F; }
 	li { margin: 9px 0; }
-	.hr {
-        box-shadow: 1px 1px 10px 1px #6a4a3c;
-	}
+    .wrap { margin: 0 auto; width: 90%; }
+    .header { color: #28150b; margin: 10px auto; opacity: 0.9; }
+	.header .logo { font-family: "Frijole"; font-size: 5.5em; margin-top: 10px; }
+	.header a.logo { text-decoration: none; }
     .box { font-size: 1.2em; color: #222222; padding: 10px 20px; font-style: italic; background: #e5c24e; }
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
+	.box pre { overflow-x: overlay; }
   </style>
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -97,30 +80,36 @@
     <h2>Usage</h2>
     <p>
         <h4>Basic</h4>
-        <p>In this example, wpbf will do a bruteforce test using the default settings (you can change the default settings in config.py). It will enumerate usernames, find keywords and use the static+generated wordlist to bruteforce each user</p>
+        <p>In this example, wpbf will do a bruteforce test using the default settings (you can change the default settings in config.py). It will enumerate usernames, find keywords and plugins, use the static+generated wordlist to bruteforce each user and try to guess remote path:</p>
+		<div class="box">
         <pre>$ ./wpbf.py http://localhost/wordpress/
-2011-09-30 17:19:15,985 - wpbf - INFO - Target URL: http://localhost/wordpress/
-2011-09-30 17:19:16,034 - wpbf - INFO - Checking URL and username...
-2011-09-30 17:19:16,035 - wpbf - INFO - Enumerating users...
-2011-09-30 17:19:27,013 - wpbf - INFO - Usernames: admin
-2011-09-30 17:19:28,671 - wpbf - INFO - 41 passwords will be tested
-2011-09-30 17:19:28,680 - wpbf - INFO - Starting workers...
-2011-09-30 17:19:28,685 - wpbf - INFO - WordPress version: 3.0
+2012-02-26 14:26:18,793 - INFO - Target URL: http://localhost/wordpress/
+2012-02-26 14:26:18,844 - INFO - Checking URL and username...
+2012-02-26 14:26:18,845 - INFO - Enumerating users...
+2012-02-26 14:26:52,027 - INFO - Usernames: admin, test, guest
+2012-02-26 14:26:54,153 - INFO - 31 plugins will be tested
+2012-02-26 14:26:55,311 - INFO - 215 passwords will be tested
+2012-02-26 14:26:55,369 - INFO - Starting workers...
+2012-02-26 14:26:56,685 - INFO - WordPress version: 3.0.1
+2012-02-26 14:26:57,570 - INFO - WordPress path in server: /var/www/wordpress/
+2012-02-26 14:27:08,624 - INFO - Plugin 'akismet' was found
+2012-02-26 14:27:10,292 - INFO - Plugin 'akismet' version: 2.5.5 (more info @ http://localhost/wordpress/wp-content/plugins/akismet/readme.txt)
+221 tasks left / 2.1 tasks per second / 1.76min left
+199 tasks left / 2.2 tasks per second / 1.51min left
+172 tasks left / 2.7 tasks per second / 1.06min left
 21 tasks left / 1.6 tasks per second / 0.22min left
-2011-09-30 17:19:46,798 - wpbf - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php
-        </pre>
-        <h4>Username enumeration</h4>
+2012-02-26 14:57:23,245 - INFO - Password 'qawsed' found for username 'admin' on http://localhost/wordpress/wp-login.php</pre>
+		</div>
+        <h4>Username enumeration only</h4>
         <p>The '-eu' or '--enumerateusers' parameter will only do username enumeration and list the usernames found</p>
-        <pre>$ ./wpbf.py -eu http://www.mysite.com/blog/</pre>
+		<div class="box"><pre>$ ./wpbf.py -eu http://www.mysite.com/blog/</pre></div>
         <h4>Aggresive</h4>
         <p>You can spawn more threads to speed up the bruteforce process. Be aware that using a lot of threads can cause hangs in the server or denial of service. For this example we will spawn 23 threads:</p>
-        <pre>$ ./wpbf.py -t 23 http://www.mysite.com/blog/</pre>
-        <h4>Custom</h4>
+		<div class="box"><pre>$ ./wpbf.py -t 23 http://www.mysite.com/blog/</pre></div>
+		<h4>Custom</h4>
         <p>Using username 'john', not using keywords in the blog content for the wordlist and trough a local proxy:</p>
-        <pre>$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/</pre>
-        <br />
-        <p>For full usage documentation run wpbf with '-h' or '--help' parameters or check the <a href="https://github.com/atarantini/wpbf/">README file in GitHub repository</a></p>
-        <br />
+		<div class="box"><pre>$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/</pre></div>
+        <div class="box" style="margin-top: 30px">For full usage documentation run <strong style="font-style:normal">wpbf</strong> with '-h' or '--help' parameters or check the <a href="https://github.com/atarantini/wpbf/">README file in GitHub repository</a></h4></div>
   </div>
 </body>
 </html>
