@@ -20,6 +20,8 @@
 	.header a.logo { text-decoration: none; }
     .box { font-size: 1.2em; color: #222222; padding: 10px 20px; font-style: italic; background: #e5c24e; }
 	.box pre { overflow-x: overlay; }
+	.share { float: right; margin: 20px 20px 0 0; }
+	.share li { list-style: none; float: left; margin: 10px; }
   </style>
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -37,6 +39,12 @@
   <a href="http://github.com/atarantini/wpbf"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
   <div class="header wrap">
 	  <a class="logo" href="http://github.com/atarantini/wpbf">wpbf</a>
+	  <div class="share">
+		<ul>
+			<li><g:plusone size="medium" href="http://atarantini.github.com/wpbf/"></g:plusone></li>
+		    <li><a href="https://twitter.com/share" class="twitter-share-button" data-via="caco_patane">Tweet</a></li>
+		</ul>
+	 </div>
   </div>
   <div class="wrap">
     <div class="box">
@@ -111,5 +119,7 @@
 		<div class="box"><pre>$ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/</pre></div>
         <div class="box" style="margin-top: 30px">For full usage documentation run <strong style="font-style:normal">wpbf</strong> with '-h' or '--help' parameters or check the <a href="https://github.com/atarantini/wpbf/">README file in GitHub repository</a></h4></div>
   </div>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+  <script id="twitter-wjs" src="//platform.twitter.com/widgets.js"></script>
 </body>
 </html>
