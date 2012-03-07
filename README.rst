@@ -63,7 +63,7 @@ wpbf.py [-h] [-w WORDLIST] [-u USERNAME] [-s SCRIPTPATH] [-t THREADS] [-p PROXY]
 	  -p PROXY, --proxy PROXY			        HTTP proxy (ex: http://localhost:8008/)
 
 	  -eu, --enumerateusers			        Only enumerate users
-	  -eut, --enumeratetolerance ENUMERATETOLERANCE	User ID gap tolerance to use in username enumeration
+	  -eut, --enumeratetolerance ENUMERATETOLERANCE		User ID gap tolerance to use in username enumeration
 
 	  -nk, --nokeywords                                 Skip search for keywords in content for the wordlist
 	  -nf, --nofingerprint                              Skip WordPress fingerprint (version/full path)
@@ -77,34 +77,34 @@ For extended help, run "./wpbf.py -h".
 Examples
 ^^^^^^^^
 
-BASIC
+Basic
 +++++
 
 It will use the default settings (you can change the default settings in config.py file)::
 
 $ ./wpbf.py http://www.mysite.com/blog/
 
-CUSTOM
+Custom
 ++++++
 
 Using username 'john', not using keywords in the wordlist and trough a local proxy::
 
 $ ./wpbf.py --nokeywords -u john -p http://localhost:8008/ http://www.mysite.com/blog/
 
-AGGRESIVE
+Aggresive
 +++++++++
 
 It will use default settings and spawn 23 threads::
 
 $ ./wpbf.py -t 23 http://www.mysite.com/blog/
 
-
-USERNAME ENUMERATION
+Username enumeration
 ++++++++++++++++++++
-::
+Only perform a user enumeration::
+
 $ ./wpbf.py -eu http://www.mysite.com/blog/
 
-OUTPUT SAMPLE
+Output sample
 +++++++++++++
 Or how the script will behave in a normal run::
 
