@@ -1,3 +1,10 @@
+portable-phpmyadmin
+wp-property
+all-video-gallery
+advanced-custom-fields
+devformatter
+solvemedia
+comment-rating
 beer-recipes
 wptouch
 editormonkey
