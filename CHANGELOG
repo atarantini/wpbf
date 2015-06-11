@@ -2,6 +2,11 @@ wpbf! CHANGELOG
 ---------------
 
 
+2015-06-11  release-1.0.1       Andres Tarantini (atarantini@gmail.com)
+
+    * wplib: Support for "https://" schema in URLs (#33).
+
+
 2013-03-10  release-1.0.0       Andres Tarantini (atarantini@gmail.com)
 
     * Core: Considered stable release, a few years that the project is

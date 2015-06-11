@@ -85,7 +85,7 @@ class Wp:
     def __init__(self, base_url, login_script_path="wp-login.php", proxy=None, *arguments, **keywords):
         # Basic filters for the base url
         self._base_url = base_url
-        if self._base_url[0:7] != 'http://':
+        if self._base_url[0:7] != 'http://' and 'https://' not in self._base_url:
             self._base_url = 'http://'+self._base_url
         if self._base_url[-1] != '/':
             self._base_url = self._base_url+'/'
@@ -183,7 +183,7 @@ class Wp:
         url   -- Any URL in the blog that can contain author references
         """
         if url:
-            data =  self.request(url, cache=True)
+            data = self.request(url, cache=True)
         else:
             data =  self.request(self._base_url, cache=True)
         username = None
